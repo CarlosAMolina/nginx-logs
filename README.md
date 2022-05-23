@@ -5,3 +5,10 @@ Project to parse Nginx's logs.
 ### rust
 
 Code using the Rust language.
+
+#### Test
+
+```bash
+cd rust/nginx_logs
+cargo test
+```
