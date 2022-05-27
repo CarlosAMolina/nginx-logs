@@ -1,6 +1,9 @@
 use std::env;
 use std::error::Error;
-use std::fs;
+
+use std::fs::File;
+use std::io::{self, BufRead};
+use std::path::Path;
 
 pub struct Config {
     filename: String,
@@ -21,17 +24,32 @@ impl Config {
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    let contents =
-        fs::read_to_string(config.filename).expect("Something went wrong reading the file");
-
-    println!("Matches:");
-    // TODO
-    for line in search("111", &contents) {
-        println!("{}", line);
+    let lines = read_lines(config.filename).expect("Something went wrong reading the file");
+    for line in lines {
+        let log = line.expect("Something went wrong reading the line");
+        println!("{}", log);
     }
+    //println!("Matches:");
+    //// TODO
+    //for line in contents.lines() {
+    //    println!("Checking: {}", line);
+    //    if !line.contains("111") {
+    //        eprintln!("Not parsed {}", line);
+    //    }
+    //}
+    //for line in search("111", &contents) {
+    //    println!("{}", line);
+    //}
 
-    println!("File content:\n{}", contents);
+    //println!("File content:\n{}", contents);
     Ok(())
+}
+
+// https://doc.rust-lang.org/rust-by-example/std_misc/file/read_lines.html
+fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
+where P: AsRef<Path>, {
+    let file = File::open(filename)?;
+    Ok(io::BufReader::new(file).lines())
 }
 
 pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
