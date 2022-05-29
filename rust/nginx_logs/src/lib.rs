@@ -2,6 +2,7 @@ use std::env;
 use std::error::Error;
 use std::fmt;
 use std::fs::File;
+use std::io::Write;
 use std::io::{self, BufRead};
 use std::path::Path;
 
@@ -55,6 +56,9 @@ impl<'a> fmt::Display for Log<'a> {
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
+    let filename_csv = format!("{}.csv", config.filename);
+    let path_file_csv = Path::new(&filename_csv);
+    let display_file_csv = path_file_csv.display();
     let lines = read_lines(config.filename).expect("Something went wrong reading the file");
     lazy_static! {
         static ref RE: Regex = Regex::new(
@@ -79,13 +83,32 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         )
         .unwrap();
     }
+    // https://doc.rust-lang.org/rust-by-example/std_misc/file/create.html
+    let mut file = match File::create(&path_file_csv) {
+        Err(why) => panic!("couldn't create {}: {}", display_file_csv, why),
+        Ok(file) => file,
+    };
+    let csv_headers = "remote_addr,remote_user,time_local,request,status,body_bytes_sent,http_referer,http_user_agent";
+    match file.write_all(csv_headers.as_bytes()) {
+        Err(why) => panic!("couldn't write to {}: {}", display_file_csv, why),
+        Ok(_) => println!("- successfully wrote to {}", display_file_csv),
+    }
     for line in lines {
         let log_line = line.expect("Something went wrong reading the line");
         println!("{}", log_line);
         let log = get_log(&log_line, &RE).map(|m| m.to_string());
         match log {
-            None => { println!("- Not parsed")},
-            Some(log_parsed) => { println!("- Parsed: {}", log_parsed)},
+            None => {
+                println!("- Not parsed")
+            }
+            Some(log_parsed) => {
+                println!("- Parsed: {}", log_parsed);
+                file.write_all(b"\n")?;
+                match file.write_all(log_parsed.as_bytes()) {
+                    Err(why) => panic!("couldn't write to {}: {}", display_file_csv, why),
+                    Ok(_) => println!("- successfully wrote to {}", display_file_csv),
+                }
+            }
         }
     }
     Ok(())
