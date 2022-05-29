@@ -61,18 +61,38 @@ struct WritableFile<'a> {
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    let file_or_path_to_check = &Path::new(&config.file_or_path);
-    if file_or_path_to_check.is_file() {
-        run_file(&config.file_or_path)?;
-    } else if file_or_path_to_check.is_dir() {
-        for entry in fs::read_dir(file_or_path_to_check)? {
-            let entry = entry?;
-            if let Some(file_or_path_to_check) = entry.path().to_str() {
-                run_file(file_or_path_to_check)?;
-            }
-        }
-    }
+
+    //https://doc.rust-lang.org/std/fs/fn.read_dir.html
+    let mut entries = fs::read_dir(config.file_or_path)?
+        .map(|res| res.map(|e| e.path()))
+        .collect::<Result<Vec<_>, io::Error>>()?;
+    check_sort(entries);
+
+    //let file_or_path_to_check = &Path::new(&config.file_or_path);
+    //if file_or_path_to_check.is_file() {
+    //    run_file(&config.file_or_path)?;
+    //} else if file_or_path_to_check.is_dir() {
+    //    for entry in fs::read_dir(file_or_path_to_check)? {
+    //        let entry = entry?;
+    //        if let Some(file_or_path_to_check) = entry.path().to_str() {
+    //            run_file(file_or_path_to_check)?;
+    //        }
+    //    }
+    //}
     Ok(())
+}
+
+fn check_sort<T: std::fmt::Debug + std::cmp::Ord>(mut foo: Vec<T>) {
+    print!("{:?}", foo);
+    println!();
+    foo.sort();
+    println!();
+    print!("{:?}", foo);
+    println!();
+    foo.reverse();
+    println!();
+    print!("{:?}", foo);
+    println!();
 }
 
 fn run_file(file_to_check: &str) -> Result<(), Box<dyn Error>> {
