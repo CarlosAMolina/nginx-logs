@@ -1,7 +1,7 @@
 use std::env;
 use std::error::Error;
 use std::fmt;
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::Write;
 use std::io::{self, BufRead};
 use std::path::Path;
@@ -10,20 +10,20 @@ use lazy_static::lazy_static;
 use regex::Regex;
 
 pub struct Config {
-    filename: String,
+    file_or_path: String,
 }
 
 impl Config {
     pub fn new(mut args: env::Args) -> Result<Config, &'static str> {
         println!("Arguments: {:?}", args);
         args.next();
-        let filename = match args.next() {
+        let file_or_path = match args.next() {
             Some(arg) => arg,
-            None => return Err("Didn't get a file name"),
+            None => return Err("Didn't get a file name or a path"),
         };
-        println!("Filename: {}", filename);
+        println!("Checking: {}", file_or_path);
 
-        Ok(Config { filename })
+        Ok(Config { file_or_path })
     }
 }
 
@@ -61,10 +61,22 @@ struct WritableFile<'a> {
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    run_file(&config.filename)
+    let file_or_path_to_check = &Path::new(&config.file_or_path);
+    if file_or_path_to_check.is_file() {
+        run_file(&config.file_or_path)?;
+    } else if file_or_path_to_check.is_dir() {
+        for entry in fs::read_dir(file_or_path_to_check)? {
+            let entry = entry?;
+            if let Some(file_or_path_to_check) = entry.path().to_str() {
+                run_file(file_or_path_to_check)?;
+            }
+        }
+    }
+    Ok(())
 }
 
 fn run_file(file_to_check: &str) -> Result<(), Box<dyn Error>> {
+    println!("File to check: {}", file_to_check);
     let filename = format!("{}.csv", file_to_check);
     let path = &Path::new(&filename);
     let display = path.display();
