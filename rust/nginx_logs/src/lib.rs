@@ -88,14 +88,8 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         .unwrap();
     }
     // https://doc.rust-lang.org/rust-by-example/std_misc/file/create.html
-    let file_csv = match File::create(&path_file_csv) {
-        Err(why) => panic!("couldn't create {}: {}", display_file_csv, why),
-        Ok(file) => file,
-    };
-    let file_not_parsed = match File::create(&path_file_not_parsed) {
-        Err(why) => panic!("couldn't create {}: {}", display_file_not_parsed, why),
-        Ok(file) => file,
-    };
+    let file_csv = get_new_file(path_file_csv, &display_file_csv)?;
+    let file_not_parsed = get_new_file(path_file_not_parsed, &display_file_not_parsed)?;
     let csv_headers = "remote_addr,remote_user,time_local,request,status,body_bytes_sent,http_referer,http_user_agent".to_string();
     write_line_to_file(&file_csv, csv_headers, &display_file_csv)?;
     for line in lines {
@@ -112,6 +106,14 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         }
     }
     Ok(())
+}
+
+fn get_new_file(path: &std::path::Path, display: &std::path::Display) -> Result<std::fs::File, String> {
+    let file = match File::create(&path) {
+        Err(why) => return Err(format!("couldn't create {}: {}", display, why)),
+        Ok(file) => file,
+    };
+    Ok(file)
 }
 
 fn write_line_to_file(mut file: &std::fs::File, line: String, display: &std::path::Display) -> Result<(), String> {
