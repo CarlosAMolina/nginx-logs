@@ -92,7 +92,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
           \s\[
           (.+)                                 # Time local
           \]\s"
-          (.+)                                 # Request
+          (.*)                                 # Request
           "\s
           (\d{1,3})                            # Status
           \s
