@@ -57,7 +57,7 @@ impl<'a> fmt::Display for Log<'a> {
 
 struct WritableFile<'a> {
     display: &'a std::path::Display<'a>,
-    file: &'a mut std::fs::File, 
+    file: &'a mut std::fs::File,
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
@@ -80,6 +80,8 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         file: &mut file,
     };
     println!("File with not parsed logs: {}", file_not_parsed.display);
+    let csv_headers = "remote_addr,remote_user,time_local,request,status,body_bytes_sent,http_referer,http_user_agent".to_string();
+    write_line_to_file(&mut file_csv, csv_headers)?;
     let lines = read_lines(config.filename).expect("Something went wrong reading the file");
     lazy_static! {
         static ref RE: Regex = Regex::new(
@@ -104,8 +106,6 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         )
         .unwrap();
     }
-    let csv_headers = "remote_addr,remote_user,time_local,request,status,body_bytes_sent,http_referer,http_user_agent".to_string();
-    write_line_to_file(&mut file_csv, csv_headers)?;
     for line in lines {
         let log_line = line.expect("Something went wrong reading the line");
         let log = get_log(&log_line, &RE).map(|m| m.to_string());
@@ -122,7 +122,10 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn get_new_file(path: &std::path::Path, display: &std::path::Display) -> Result<std::fs::File, String> {
+fn get_new_file(
+    path: &std::path::Path,
+    display: &std::path::Display,
+) -> Result<std::fs::File, String> {
     let file = match File::create(&path) {
         Err(why) => return Err(format!("couldn't create {}: {}", display, why)),
         Ok(file) => file,
@@ -132,14 +135,17 @@ fn get_new_file(path: &std::path::Path, display: &std::path::Display) -> Result<
 
 fn write_line_to_file(file: &mut WritableFile, line: String) -> Result<(), String> {
     if let Err(e) = file.file.write_all(line.as_bytes()) {
-        return Err(format!("couldn't write to {}: {}", file.display, e.to_string()))
+        return Err(format!(
+            "couldn't write to {}: {}",
+            file.display,
+            e.to_string()
+        ));
     }
     if let Err(e) = file.file.write_all(b"\n") {
-        return Err(e.to_string())
+        return Err(e.to_string());
     }
     Ok(())
 }
-
 
 // https://doc.rust-lang.org/rust-by-example/std_misc/file/read_lines.html
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
