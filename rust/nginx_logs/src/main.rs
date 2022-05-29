@@ -10,7 +10,6 @@ fn main() {
     });
     if let Err(e) = nginx_logs::run(config) {
         eprintln!("Application error: {}", e);
-
         process::exit(1);
     }
 }

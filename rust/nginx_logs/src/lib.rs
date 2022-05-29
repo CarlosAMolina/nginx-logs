@@ -55,14 +55,31 @@ impl<'a> fmt::Display for Log<'a> {
     }
 }
 
+struct WritableFile<'a> {
+    display: &'a std::path::Display<'a>,
+    file: &'a mut std::fs::File, 
+}
+
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    let filename_csv = format!("{}.csv", config.filename);
-    let filename_not_parsed = format!("{}.error.txt", config.filename);
-    println!("Not parsed logs will be written in {}", filename_not_parsed);
-    let path_file_csv = Path::new(&filename_csv);
-    let path_file_not_parsed = Path::new(&filename_not_parsed);
-    let display_file_csv = path_file_csv.display();
-    let display_file_not_parsed = path_file_not_parsed.display();
+    let filename = format!("{}.csv", config.filename);
+    let path = &Path::new(&filename);
+    let display = path.display();
+    // https://doc.rust-lang.org/rust-by-example/std_misc/file/create.html
+    let mut file = get_new_file(path, &display)?;
+    let mut file_csv = WritableFile {
+        display: &display,
+        file: &mut file,
+    };
+    println!("File with logs as csv: {}", file_csv.display);
+    let filename = format!("{}.error.txt", config.filename);
+    let path = Path::new(&filename);
+    let display = path.display();
+    let mut file = get_new_file(path, &display)?;
+    let mut file_not_parsed = WritableFile {
+        display: &display,
+        file: &mut file,
+    };
+    println!("File with not parsed logs: {}", file_not_parsed.display);
     let lines = read_lines(config.filename).expect("Something went wrong reading the file");
     lazy_static! {
         static ref RE: Regex = Regex::new(
@@ -87,21 +104,18 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         )
         .unwrap();
     }
-    // https://doc.rust-lang.org/rust-by-example/std_misc/file/create.html
-    let file_csv = get_new_file(path_file_csv, &display_file_csv)?;
-    let file_not_parsed = get_new_file(path_file_not_parsed, &display_file_not_parsed)?;
     let csv_headers = "remote_addr,remote_user,time_local,request,status,body_bytes_sent,http_referer,http_user_agent".to_string();
-    write_line_to_file(&file_csv, csv_headers, &display_file_csv)?;
+    write_line_to_file(&mut file_csv, csv_headers)?;
     for line in lines {
         let log_line = line.expect("Something went wrong reading the line");
         let log = get_log(&log_line, &RE).map(|m| m.to_string());
         match log {
             None => {
                 eprintln!("Not parsed: {}", log_line);
-                write_line_to_file(&file_not_parsed, log_line, &display_file_not_parsed)?;
+                write_line_to_file(&mut file_not_parsed, log_line)?;
             }
-            Some(log_parsed) => {
-                write_line_to_file(&file_csv, log_parsed, &display_file_csv)?;
+            Some(log_csv) => {
+                write_line_to_file(&mut file_csv, log_csv)?;
             }
         }
     }
@@ -116,15 +130,16 @@ fn get_new_file(path: &std::path::Path, display: &std::path::Display) -> Result<
     Ok(file)
 }
 
-fn write_line_to_file(mut file: &std::fs::File, line: String, display: &std::path::Display) -> Result<(), String> {
-    if let Err(e) = file.write_all(line.as_bytes()) {
-        return Err(format!("couldn't write to {}: {}", display, e.to_string()))
+fn write_line_to_file(file: &mut WritableFile, line: String) -> Result<(), String> {
+    if let Err(e) = file.file.write_all(line.as_bytes()) {
+        return Err(format!("couldn't write to {}: {}", file.display, e.to_string()))
     }
-    if let Err(e) = file.write_all(b"\n") {
+    if let Err(e) = file.file.write_all(b"\n") {
         return Err(e.to_string())
     }
     Ok(())
 }
+
 
 // https://doc.rust-lang.org/rust-by-example/std_misc/file/read_lines.html
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
