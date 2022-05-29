@@ -84,34 +84,35 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         .unwrap();
     }
     // https://doc.rust-lang.org/rust-by-example/std_misc/file/create.html
-    let mut file = match File::create(&path_file_csv) {
+    let file = match File::create(&path_file_csv) {
         Err(why) => panic!("couldn't create {}: {}", display_file_csv, why),
         Ok(file) => file,
     };
-    let csv_headers = "remote_addr,remote_user,time_local,request,status,body_bytes_sent,http_referer,http_user_agent";
-    match file.write_all(csv_headers.as_bytes()) {
-        Err(why) => panic!("couldn't write to {}: {}", display_file_csv, why),
-        Ok(_) => println!("- successfully wrote to {}", display_file_csv),
-    }
+    let csv_headers = "remote_addr,remote_user,time_local,request,status,body_bytes_sent,http_referer,http_user_agent".to_string();
+    write_line_to_file(&file, csv_headers, &display_file_csv)?;
     for line in lines {
         let log_line = line.expect("Something went wrong reading the line");
-        println!("{}", log_line);
         let log = get_log(&log_line, &RE).map(|m| m.to_string());
         match log {
             None => {
-                println!("- Not parsed")
+                eprintln!("{}", log_line);
             }
             Some(log_parsed) => {
-                println!("- Parsed: {}", log_parsed);
-                file.write_all(b"\n")?;
-                match file.write_all(log_parsed.as_bytes()) {
-                    Err(why) => panic!("couldn't write to {}: {}", display_file_csv, why),
-                    Ok(_) => println!("- successfully wrote to {}", display_file_csv),
-                }
+                write_line_to_file(&file, log_parsed, &display_file_csv)?;
             }
         }
     }
     Ok(())
+}
+
+fn write_line_to_file(mut file: &std::fs::File, line: String, display: &std::path::Display) -> Result<(), String> {
+    if let Err(e) = file.write_all(b"\n") {
+        return Err(e.to_string())
+    }
+    match file.write_all(line.as_bytes()) {
+        Err(why) => return Err(format!("couldn't write to {}: {}", display, why)),
+        Ok(_) => Ok(()),
+    }
 }
 
 // https://doc.rust-lang.org/rust-by-example/std_misc/file/read_lines.html
