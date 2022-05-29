@@ -61,7 +61,11 @@ struct WritableFile<'a> {
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    let filename = format!("{}.csv", config.filename);
+    run_file(&config.filename)
+}
+
+fn run_file(file_to_check: &str) -> Result<(), Box<dyn Error>> {
+    let filename = format!("{}.csv", file_to_check);
     let path = &Path::new(&filename);
     let display = path.display();
     // https://doc.rust-lang.org/rust-by-example/std_misc/file/create.html
@@ -71,7 +75,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         file: &mut file,
     };
     println!("File with logs as csv: {}", file_csv.display);
-    let filename = format!("{}.error.txt", config.filename);
+    let filename = format!("{}.error.txt", file_to_check);
     let path = Path::new(&filename);
     let display = path.display();
     let mut file = get_new_file(path, &display)?;
@@ -82,7 +86,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     println!("File with not parsed logs: {}", file_not_parsed.display);
     let csv_headers = "remote_addr,remote_user,time_local,request,status,body_bytes_sent,http_referer,http_user_agent".to_string();
     write_line_to_file(&mut file_csv, csv_headers)?;
-    let lines = read_lines(config.filename).expect("Something went wrong reading the file");
+    let lines = read_lines(file_to_check).expect("Something went wrong reading the file");
     lazy_static! {
         static ref RE: Regex = Regex::new(
             r#"(?x)
