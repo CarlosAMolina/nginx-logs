@@ -61,7 +61,6 @@ struct WritableFile<'a> {
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-
     //https://doc.rust-lang.org/std/fs/fn.read_dir.html
     let mut entries = fs::read_dir(config.file_or_path)?
         .map(|res| res.map(|e| e.path()))
@@ -227,4 +226,48 @@ fn get_log<'a>(text: &'a str, re: &'a Regex) -> Option<Log<'a>> {
             _ => None,
         }
     })
+}
+
+fn get_vec_log_sorted() -> Vec<u8> {
+    lazy_static! {
+        static ref LOG_NUMBER: Regex = Regex::new(
+            r#"(?x)
+          ^access\.log\.
+          (?P<log_number>[0-9]+)
+        "#,
+        )
+        .unwrap();
+    }
+    let mut vector_str = vec![
+        "access.log",
+        "access.log.5",
+        "access.log.2",
+        "access.log.10",
+        "access.log.1",
+    ];
+    for filename in vector_str.iter() {
+        // https://rust-lang-nursery.github.io/rust-cookbook/text/regex.html#verify-and-extract-login-from-an-email-address
+        LOG_NUMBER.captures(filename).and_then(|cap| {
+            cap.name("log_number").map(|number| println!("{:?}", number))
+            //let groups = (cap.get(1),);
+            //let filename_number = match groups {
+            //    (Some(log_number),) => Some(log_number),
+            //    _ => None,
+            //};
+        });
+        //println!("{:?}", filename_number);
+    }
+    let mut vector = [10, 5, 2, 1].to_vec();
+    vector.sort();
+    vector.reverse();
+    vector
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_get_vec_log_sorted() {
+        assert_eq!([10, 5, 2, 1].to_vec(), get_vec_log_sorted());
+    }
 }
