@@ -228,46 +228,51 @@ fn get_log<'a>(text: &'a str, re: &'a Regex) -> Option<Log<'a>> {
     })
 }
 
-fn get_vec_log_sorted() -> Vec<u8> {
+fn get_log_filenames_sort_reverse(filenames: Vec<&str>) -> Vec<String> {
     lazy_static! {
-        static ref LOG_NUMBER: Regex = Regex::new(
-            r#"(?x)
-          ^access\.log\.
-          (?P<log_number>[0-9]+)
-        "#,
-        )
-        .unwrap();
+        static ref FILE_NUMBER: Regex =
+            Regex::new(r"^access\.log\.(?P<file_number>[0-9]+)").unwrap();
     }
-    let mut vector_str = vec![
-        "access.log",
-        "access.log.5",
-        "access.log.2",
-        "access.log.10",
-        "access.log.1",
-    ];
-    for filename in vector_str.iter() {
-        // https://rust-lang-nursery.github.io/rust-cookbook/text/regex.html#verify-and-extract-login-from-an-email-address
-        LOG_NUMBER.captures(filename).and_then(|cap| {
-            cap.name("log_number").map(|number| println!("{:?}", number))
-            //let groups = (cap.get(1),);
-            //let filename_number = match groups {
-            //    (Some(log_number),) => Some(log_number),
-            //    _ => None,
-            //};
+    let mut numbers = Vec::<u8>::new();
+    for filename in filenames.iter() {
+        let number = FILE_NUMBER.captures(filename).and_then(|cap| {
+            cap.name("file_number")
+                .map(|number| numbers.push(number.as_str().parse::<u8>().unwrap()))
         });
-        //println!("{:?}", filename_number);
     }
-    let mut vector = [10, 5, 2, 1].to_vec();
-    vector.sort();
-    vector.reverse();
-    vector
+    numbers.sort();
+    numbers.reverse();
+    let mut result = Vec::<String>::new();
+    for number in numbers.iter() {
+        result.push(format!("access.log.{}", number));
+    }
+    if filenames.contains(&"access.log") {
+        result.push("access.log".to_string());
+    }
+    result
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     #[test]
-    fn test_get_vec_log_sorted() {
-        assert_eq!([10, 5, 2, 1].to_vec(), get_vec_log_sorted());
+    fn test_get_log_filenames_sort_reverse() {
+        let filenames = vec![
+            "access.log",
+            "access.log.5",
+            "access.log.2",
+            "access.log.10",
+            "access.log.1",
+        ];
+        assert_eq!(
+            vec![
+                "access.log.10",
+                "access.log.5",
+                "access.log.2",
+                "access.log.1",
+                "access.log",
+            ],
+            get_log_filenames_sort_reverse(filenames)
+        );
     }
 }
