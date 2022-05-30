@@ -62,11 +62,18 @@ struct WritableFile<'a> {
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     //https://doc.rust-lang.org/std/fs/fn.read_dir.html
-    let mut entries = fs::read_dir(config.file_or_path)?
+    let entries = fs::read_dir(config.file_or_path)?
         .map(|res| res.map(|e| e.path()))
         .collect::<Result<Vec<_>, io::Error>>()?;
-    check_sort(entries);
-
+    let entries_str = entries
+        .iter()
+        .map(|e| e.to_str().unwrap())
+        .collect::<Vec<&str>>();
+    println!("{:?}", entries_str);
+    let entries_str = get_log_filenames_sort_reverse(&entries_str);
+    println!("{:?}", entries_str);
+    let entries = entries_str.iter().map(|e| Path::new(e));
+    println!("{:?}", entries);
     //let file_or_path_to_check = &Path::new(&config.file_or_path);
     //if file_or_path_to_check.is_file() {
     //    run_file(&config.file_or_path)?;
@@ -79,19 +86,6 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     //    }
     //}
     Ok(())
-}
-
-fn check_sort<T: std::fmt::Debug + std::cmp::Ord>(mut foo: Vec<T>) {
-    print!("{:?}", foo);
-    println!();
-    foo.sort();
-    println!();
-    print!("{:?}", foo);
-    println!();
-    foo.reverse();
-    println!();
-    print!("{:?}", foo);
-    println!();
 }
 
 fn run_file(file_to_check: &str) -> Result<(), Box<dyn Error>> {
@@ -228,7 +222,7 @@ fn get_log<'a>(text: &'a str, re: &'a Regex) -> Option<Log<'a>> {
     })
 }
 
-fn get_log_filenames_sort_reverse(filenames: Vec<&str>) -> Vec<String> {
+fn get_log_filenames_sort_reverse(filenames: &Vec<&str>) -> Vec<String> {
     lazy_static! {
         static ref FILE_NUMBER: Regex =
             Regex::new(r"^access\.log\.(?P<file_number>[0-9]+)").unwrap();
@@ -258,6 +252,7 @@ mod tests {
     #[test]
     fn test_get_log_filenames_sort_reverse() {
         let filenames = vec![
+            "foo.txt",
             "access.log",
             "access.log.5",
             "access.log.2",
@@ -272,7 +267,7 @@ mod tests {
                 "access.log.1",
                 "access.log",
             ],
-            get_log_filenames_sort_reverse(filenames)
+            get_log_filenames_sort_reverse(&filenames)
         );
     }
 }
