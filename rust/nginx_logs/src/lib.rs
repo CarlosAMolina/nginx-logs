@@ -90,6 +90,30 @@ fn get_filenames_to_analyze_in_path(path: &str) -> Result<Vec<String>, Box<dyn E
     Ok(get_log_filenames_sort_reverse(&filenames))
 }
 
+fn get_log_filenames_sort_reverse(filenames: &Vec<&str>) -> Vec<String> {
+    lazy_static! {
+        static ref FILE_NUMBER: Regex =
+            Regex::new(r"^access\.log\.(?P<file_number>[0-9]+)").unwrap();
+    }
+    let mut numbers = Vec::<u8>::new();
+    for filename in filenames.iter() {
+        let number = FILE_NUMBER.captures(filename).and_then(|cap| {
+            cap.name("file_number")
+                .map(|number| numbers.push(number.as_str().parse::<u8>().unwrap()))
+        });
+    }
+    numbers.sort();
+    numbers.reverse();
+    let mut result = Vec::<String>::new();
+    for number in numbers.iter() {
+        result.push(format!("access.log.{}", number));
+    }
+    if filenames.contains(&"access.log") {
+        result.push("access.log".to_string());
+    }
+    result
+}
+
 fn run_file(file_to_check: &str) -> Result<(), Box<dyn Error>> {
     println!("File to check: {}", file_to_check);
     let filename = format!("{}.csv", file_to_check);
@@ -222,30 +246,6 @@ fn get_log<'a>(text: &'a str, re: &'a Regex) -> Option<Log<'a>> {
             _ => None,
         }
     })
-}
-
-fn get_log_filenames_sort_reverse(filenames: &Vec<&str>) -> Vec<String> {
-    lazy_static! {
-        static ref FILE_NUMBER: Regex =
-            Regex::new(r"^access\.log\.(?P<file_number>[0-9]+)").unwrap();
-    }
-    let mut numbers = Vec::<u8>::new();
-    for filename in filenames.iter() {
-        let number = FILE_NUMBER.captures(filename).and_then(|cap| {
-            cap.name("file_number")
-                .map(|number| numbers.push(number.as_str().parse::<u8>().unwrap()))
-        });
-    }
-    numbers.sort();
-    numbers.reverse();
-    let mut result = Vec::<String>::new();
-    for number in numbers.iter() {
-        result.push(format!("access.log.{}", number));
-    }
-    if filenames.contains(&"access.log") {
-        result.push("access.log".to_string());
-    }
-    result
 }
 
 #[cfg(test)]
