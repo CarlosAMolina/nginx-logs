@@ -67,7 +67,10 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     } else if file_or_path_to_check.is_dir() {
         let filenames = get_filenames_to_analyze_in_path(&config.file_or_path)?;
         for filename in filenames {
-            let file = format!("{}/{}", config.file_or_path, filename);
+            let file = match config.file_or_path.ends_with('/') {
+                true => format!("{}{}", config.file_or_path, filename),
+                false => format!("{}/{}", config.file_or_path, filename),
+            };
             println!("{:?}", file);
             //TODO run_file(file)?;
         }
