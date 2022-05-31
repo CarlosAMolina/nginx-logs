@@ -65,20 +65,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     if file_or_path_to_check.is_file() {
         // TODO run_file(&config.file_or_path)?;
     } else if file_or_path_to_check.is_dir() {
-        //https://doc.rust-lang.org/std/fs/fn.read_dir.html
-        let entries = fs::read_dir(&config.file_or_path)?
-            .map(|res| res.map(|e| e.path()))
-            .collect::<Result<Vec<_>, io::Error>>()?;
-        println!("{:?}", entries);
-        let filenames = entries
-            .iter()
-            .map(|e| e.file_name().unwrap().to_str().unwrap())
-            .collect::<Vec<&str>>();
-        println!("{:?}", filenames);
-        let filenames = get_log_filenames_sort_reverse(&filenames);
-        println!("{:?}", filenames);
-        //let entries = filenames.iter().map(|e| Path::new(e));
-        //println!("{:?}", entries);
+        let filenames = get_filenames_to_analyze_in_path(&config.file_or_path)?;
         for filename in filenames {
             let file = format!("{}/{}", config.file_or_path, filename);
             println!("{:?}", file);
@@ -86,6 +73,18 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         }
     }
     Ok(())
+}
+
+fn get_filenames_to_analyze_in_path(path: &str) -> Result<Vec<String>, Box<dyn Error>> {
+    //https://doc.rust-lang.org/std/fs/fn.read_dir.html
+    let entries = fs::read_dir(path)?
+        .map(|res| res.map(|e| e.path()))
+        .collect::<Result<Vec<_>, io::Error>>()?;
+    let filenames = entries
+        .iter()
+        .map(|e| e.file_name().unwrap().to_str().unwrap())
+        .collect::<Vec<&str>>();
+    Ok(get_log_filenames_sort_reverse(&filenames))
 }
 
 fn run_file(file_to_check: &str) -> Result<(), Box<dyn Error>> {
