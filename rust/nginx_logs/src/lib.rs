@@ -55,7 +55,7 @@ impl<'a> fmt::Display for Log<'a> {
     }
 }
 
-struct WritableFile<'a> {
+struct FileAndDisplay<'a> {
     display: &'a std::path::Display<'a>,
     file: &'a mut std::fs::File,
 }
@@ -70,23 +70,27 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let display_csv = path_csv.display();
     // https://doc.rust-lang.org/rust-by-example/std_misc/file/create.html
     let mut file_csv = get_new_file(&path_csv)?;
-    let mut writable_file_csv = WritableFile {
+    let mut file_and_display_csv = FileAndDisplay {
         display: &display_csv,
         file: &mut file_csv,
     };
-    println!("File with logs as csv: {}", writable_file_csv.display);
+    println!("File with logs as csv: {}", path_csv.display());
     let path_error = path_to_check.join("error.txt");
     let display_error = path_error.display();
     let mut file_error = get_new_file(&path_error)?;
-    let mut writable_file_error = WritableFile {
+    let mut file_and_display_error = FileAndDisplay {
         display: &display_error,
         file: &mut file_error,
     };
-    println!("File with not parsed logs: {}", writable_file_error.display);
+    println!("File with not parsed logs: {}", path_error.display());
     let csv_headers = "remote_addr,remote_user,time_local,request,status,body_bytes_sent,http_referer,http_user_agent".to_string();
-    write_line_to_file(&mut writable_file_csv, csv_headers)?;
+    write_line_to_file(&mut file_and_display_csv, csv_headers)?;
     if file_or_path_to_check.is_file() {
-        export_to_csv(&config.file_or_path, &mut writable_file_csv, &mut writable_file_error)?;
+        export_to_csv(
+            &config.file_or_path,
+            &mut file_and_display_csv,
+            &mut file_and_display_error,
+        )?;
     } else if file_or_path_to_check.is_dir() {
         let filenames = get_filenames_to_analyze_in_path(&config.file_or_path)?;
         for filename in filenames {
@@ -94,7 +98,11 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
                 true => format!("{}{}", config.file_or_path, filename),
                 false => format!("{}/{}", config.file_or_path, filename),
             };
-            export_to_csv(&file_str, &mut writable_file_csv, &mut writable_file_error)?;
+            export_to_csv(
+                &file_str,
+                &mut file_and_display_csv,
+                &mut file_and_display_error,
+            )?;
         }
     }
     Ok(())
@@ -136,7 +144,11 @@ fn get_log_filenames_sort_reverse(filenames: &Vec<&str>) -> Vec<String> {
     result
 }
 
-fn export_to_csv(file_to_check: &str, mut file_csv: &mut WritableFile, mut file_error: &mut WritableFile) -> Result<(), Box<dyn Error>> {
+fn export_to_csv(
+    file_to_check: &str,
+    mut file_and_display_csv: &mut FileAndDisplay,
+    mut file_and_display_error: &mut FileAndDisplay,
+) -> Result<(), Box<dyn Error>> {
     println!("Init file: {}", file_to_check);
     let lines = read_lines(file_to_check).expect("Something went wrong reading the file");
     lazy_static! {
@@ -168,19 +180,17 @@ fn export_to_csv(file_to_check: &str, mut file_csv: &mut WritableFile, mut file_
         match log {
             None => {
                 eprintln!("Not parsed: {}", log_line);
-                write_line_to_file(&mut file_error, log_line)?;
+                write_line_to_file(&mut file_and_display_error, log_line)?;
             }
             Some(log_csv) => {
-                write_line_to_file(&mut file_csv, log_csv)?;
+                write_line_to_file(&mut file_and_display_csv, log_csv)?;
             }
         }
     }
     Ok(())
 }
 
-fn get_new_file(
-    path: &std::path::Path,
-) -> Result<std::fs::File, String> {
+fn get_new_file(path: &std::path::Path) -> Result<std::fs::File, String> {
     let file = match File::create(&path) {
         Err(why) => return Err(format!("couldn't create {}: {}", path.display(), why)),
         Ok(file) => file,
@@ -188,15 +198,15 @@ fn get_new_file(
     Ok(file)
 }
 
-fn write_line_to_file(file: &mut WritableFile, line: String) -> Result<(), String> {
-    if let Err(e) = file.file.write_all(line.as_bytes()) {
+fn write_line_to_file(file_and_display: &mut FileAndDisplay, line: String) -> Result<(), String> {
+    if let Err(e) = file_and_display.file.write_all(line.as_bytes()) {
         return Err(format!(
             "couldn't write to {}: {}",
-            file.display,
+            file_and_display.display,
             e.to_string()
         ));
     }
-    if let Err(e) = file.file.write_all(b"\n") {
+    if let Err(e) = file_and_display.file.write_all(b"\n") {
         return Err(e.to_string());
     }
     Ok(())
