@@ -69,7 +69,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let path_csv = path_to_check.join("result.csv");
     let display_csv = path_csv.display();
     // https://doc.rust-lang.org/rust-by-example/std_misc/file/create.html
-    let mut file_csv = get_new_file(&path_csv, &display_csv)?;
+    let mut file_csv = get_new_file(&path_csv)?;
     let mut writable_file_csv = WritableFile {
         display: &display_csv,
         file: &mut file_csv,
@@ -77,7 +77,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     println!("File with logs as csv: {}", writable_file_csv.display);
     let path_error = path_to_check.join("error.txt");
     let display_error = path_error.display();
-    let mut file_error = get_new_file(&path_error, &display_error)?;
+    let mut file_error = get_new_file(&path_error)?;
     let mut writable_file_error = WritableFile {
         display: &display_error,
         file: &mut file_error,
@@ -180,10 +180,9 @@ fn export_to_csv(file_to_check: &str, mut file_csv: &mut WritableFile, mut file_
 
 fn get_new_file(
     path: &std::path::Path,
-    display: &std::path::Display,
 ) -> Result<std::fs::File, String> {
     let file = match File::create(&path) {
-        Err(why) => return Err(format!("couldn't create {}: {}", display, why)),
+        Err(why) => return Err(format!("couldn't create {}: {}", path.display(), why)),
         Ok(file) => file,
     };
     Ok(file)
