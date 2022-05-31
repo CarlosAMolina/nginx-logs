@@ -61,30 +61,30 @@ struct WritableFile<'a> {
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    //https://doc.rust-lang.org/std/fs/fn.read_dir.html
-    let entries = fs::read_dir(config.file_or_path)?
-        .map(|res| res.map(|e| e.path()))
-        .collect::<Result<Vec<_>, io::Error>>()?;
-    let entries_str = entries
-        .iter()
-        .map(|e| e.to_str().unwrap())
-        .collect::<Vec<&str>>();
-    println!("{:?}", entries_str);
-    let entries_str = get_log_filenames_sort_reverse(&entries_str);
-    println!("{:?}", entries_str);
-    let entries = entries_str.iter().map(|e| Path::new(e));
-    println!("{:?}", entries);
-    //let file_or_path_to_check = &Path::new(&config.file_or_path);
-    //if file_or_path_to_check.is_file() {
-    //    run_file(&config.file_or_path)?;
-    //} else if file_or_path_to_check.is_dir() {
-    //    for entry in fs::read_dir(file_or_path_to_check)? {
-    //        let entry = entry?;
-    //        if let Some(file_or_path_to_check) = entry.path().to_str() {
-    //            run_file(file_or_path_to_check)?;
-    //        }
-    //    }
-    //}
+    let file_or_path_to_check = &Path::new(&config.file_or_path);
+    if file_or_path_to_check.is_file() {
+        // TODO run_file(&config.file_or_path)?;
+    } else if file_or_path_to_check.is_dir() {
+        //https://doc.rust-lang.org/std/fs/fn.read_dir.html
+        let entries = fs::read_dir(&config.file_or_path)?
+            .map(|res| res.map(|e| e.path()))
+            .collect::<Result<Vec<_>, io::Error>>()?;
+        println!("{:?}", entries);
+        let filenames = entries
+            .iter()
+            .map(|e| e.file_name().unwrap().to_str().unwrap())
+            .collect::<Vec<&str>>();
+        println!("{:?}", filenames);
+        let filenames = get_log_filenames_sort_reverse(&filenames);
+        println!("{:?}", filenames);
+        //let entries = filenames.iter().map(|e| Path::new(e));
+        //println!("{:?}", entries);
+        for filename in filenames {
+            let file = format!("{}/{}", config.file_or_path, filename);
+            println!("{:?}", file);
+            //TODO run_file(file)?;
+        }
+    }
     Ok(())
 }
 
