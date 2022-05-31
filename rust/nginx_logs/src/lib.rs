@@ -62,17 +62,39 @@ struct WritableFile<'a> {
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let file_or_path_to_check = &Path::new(&config.file_or_path);
+    let path_to_check = match file_or_path_to_check.is_file() {
+        true => file_or_path_to_check.parent().unwrap(),
+        false => file_or_path_to_check,
+    };
+    let path_csv = path_to_check.join("result.csv");
+    let display_csv = path_csv.display();
+    // https://doc.rust-lang.org/rust-by-example/std_misc/file/create.html
+    let mut file_csv = get_new_file(&path_csv, &display_csv)?;
+    let mut writable_file_csv = WritableFile {
+        display: &display_csv,
+        file: &mut file_csv,
+    };
+    println!("File with logs as csv: {}", writable_file_csv.display);
+    let path_error = path_to_check.join("error.txt");
+    let display_error = path_error.display();
+    let mut file_error = get_new_file(&path_error, &display_error)?;
+    let mut writable_file_error = WritableFile {
+        display: &display_error,
+        file: &mut file_error,
+    };
+    println!("File with not parsed logs: {}", writable_file_error.display);
+    let csv_headers = "remote_addr,remote_user,time_local,request,status,body_bytes_sent,http_referer,http_user_agent".to_string();
+    write_line_to_file(&mut writable_file_csv, csv_headers)?;
     if file_or_path_to_check.is_file() {
-        // TODO run_file(&config.file_or_path)?;
+        export_to_csv(&config.file_or_path, &mut writable_file_csv, &mut writable_file_error)?;
     } else if file_or_path_to_check.is_dir() {
         let filenames = get_filenames_to_analyze_in_path(&config.file_or_path)?;
         for filename in filenames {
-            let file = match config.file_or_path.ends_with('/') {
+            let file_str = match config.file_or_path.ends_with('/') {
                 true => format!("{}{}", config.file_or_path, filename),
                 false => format!("{}/{}", config.file_or_path, filename),
             };
-            println!("{:?}", file);
-            //TODO run_file(file)?;
+            export_to_csv(&file_str, &mut writable_file_csv, &mut writable_file_error)?;
         }
     }
     Ok(())
@@ -97,7 +119,7 @@ fn get_log_filenames_sort_reverse(filenames: &Vec<&str>) -> Vec<String> {
     }
     let mut numbers = Vec::<u8>::new();
     for filename in filenames.iter() {
-        let number = FILE_NUMBER.captures(filename).and_then(|cap| {
+        FILE_NUMBER.captures(filename).and_then(|cap| {
             cap.name("file_number")
                 .map(|number| numbers.push(number.as_str().parse::<u8>().unwrap()))
         });
@@ -114,29 +136,8 @@ fn get_log_filenames_sort_reverse(filenames: &Vec<&str>) -> Vec<String> {
     result
 }
 
-fn run_file(file_to_check: &str) -> Result<(), Box<dyn Error>> {
-    println!("File to check: {}", file_to_check);
-    let filename = format!("{}.csv", file_to_check);
-    let path = &Path::new(&filename);
-    let display = path.display();
-    // https://doc.rust-lang.org/rust-by-example/std_misc/file/create.html
-    let mut file = get_new_file(path, &display)?;
-    let mut file_csv = WritableFile {
-        display: &display,
-        file: &mut file,
-    };
-    println!("File with logs as csv: {}", file_csv.display);
-    let filename = format!("{}.error.txt", file_to_check);
-    let path = Path::new(&filename);
-    let display = path.display();
-    let mut file = get_new_file(path, &display)?;
-    let mut file_not_parsed = WritableFile {
-        display: &display,
-        file: &mut file,
-    };
-    println!("File with not parsed logs: {}", file_not_parsed.display);
-    let csv_headers = "remote_addr,remote_user,time_local,request,status,body_bytes_sent,http_referer,http_user_agent".to_string();
-    write_line_to_file(&mut file_csv, csv_headers)?;
+fn export_to_csv(file_to_check: &str, mut file_csv: &mut WritableFile, mut file_error: &mut WritableFile) -> Result<(), Box<dyn Error>> {
+    println!("Init file: {}", file_to_check);
     let lines = read_lines(file_to_check).expect("Something went wrong reading the file");
     lazy_static! {
         static ref RE: Regex = Regex::new(
@@ -167,7 +168,7 @@ fn run_file(file_to_check: &str) -> Result<(), Box<dyn Error>> {
         match log {
             None => {
                 eprintln!("Not parsed: {}", log_line);
-                write_line_to_file(&mut file_not_parsed, log_line)?;
+                write_line_to_file(&mut file_error, log_line)?;
             }
             Some(log_csv) => {
                 write_line_to_file(&mut file_csv, log_csv)?;
