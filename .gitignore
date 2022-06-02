@@ -1,1 +1,2 @@
 /rust/nginx_logs/target/
+*.swp

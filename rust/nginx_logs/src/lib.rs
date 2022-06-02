@@ -6,8 +6,11 @@ use std::io::Write;
 use std::io::{self, BufRead};
 use std::path::Path;
 
+use csv::Writer;
+use csv::WriterBuilder;
 use lazy_static::lazy_static;
 use regex::Regex;
+use serde_derive::Serialize;
 
 pub struct Config {
     file_or_path: String,
@@ -27,6 +30,7 @@ impl Config {
     }
 }
 
+#[derive(Debug, Serialize)]
 struct Log<'a> {
     remote_addr: &'a str,
     remote_user: &'a str,
@@ -68,6 +72,9 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     };
     let path_csv = path_to_check.join("result.csv");
     let display_csv = path_csv.display();
+    // TODO remove not used variables
+    let mut wtr = WriterBuilder::new().from_path(&path_csv)?;
+
     // https://doc.rust-lang.org/rust-by-example/std_misc/file/create.html
     let mut file_csv = get_new_file(&path_csv)?;
     let mut file_and_display_csv = FileAndDisplay {
@@ -90,6 +97,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
             &config.file_or_path,
             &mut file_and_display_csv,
             &mut file_and_display_error,
+            &mut wtr,
         )?;
     } else if file_or_path_to_check.is_dir() {
         let filenames = get_filenames_to_analyze_in_path(&config.file_or_path)?;
@@ -102,6 +110,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
                 &file_str,
                 &mut file_and_display_csv,
                 &mut file_and_display_error,
+                &mut wtr,
             )?;
         }
     }
@@ -148,8 +157,10 @@ fn export_to_csv(
     file_to_check: &str,
     mut file_and_display_csv: &mut FileAndDisplay,
     mut file_and_display_error: &mut FileAndDisplay,
+    mut wtr: &mut Writer<File>,
 ) -> Result<(), Box<dyn Error>> {
     println!("Init file: {}", file_to_check);
+
     let lines = read_lines(file_to_check).expect("Something went wrong reading the file");
     lazy_static! {
         static ref RE: Regex = Regex::new(
@@ -176,17 +187,19 @@ fn export_to_csv(
     }
     for line in lines {
         let log_line = line.expect("Something went wrong reading the line");
-        let log = get_log(&log_line, &RE).map(|m| m.to_string());
+        let log = get_log(&log_line, &RE);
         match log {
             None => {
                 eprintln!("Not parsed: {}", log_line);
                 write_line_to_file(&mut file_and_display_error, log_line)?;
             }
             Some(log_csv) => {
-                write_line_to_file(&mut file_and_display_csv, log_csv)?;
+                //https://docs.rs/csv/latest/csv/tutorial/index.html#writing-csv
+                wtr.serialize(log_csv)?;
             }
         }
     }
+    wtr.flush()?;
     Ok(())
 }
 
