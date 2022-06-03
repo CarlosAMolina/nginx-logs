@@ -1,3 +1,0 @@
-remote_addr,remote_user,time_local,request,status,body_bytes_sent,http_referer,http_user_agent
-8.8.8.8,-,28/Oct/2021:00:18:22 +0100,GET / HTTP/1.1,200,77,-,foo bar 1
-111.222.33.4,abc,28/Nov/2021:06:08:15 +0100,GET /foo/bar HTTP/1.1,404,118,-,foo bar 2
