@@ -2,3 +2,4 @@
 /rust/nginx_logs/error.txt
 /rust/nginx_logs/result.csv
 /rust/nginx_logs/target/
+/python/env
