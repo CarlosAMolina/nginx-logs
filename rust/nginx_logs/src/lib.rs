@@ -71,33 +71,22 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         false => file_or_path_to_check,
     };
     let path_csv = path_to_check.join("result.csv");
-    let display_csv = path_csv.display();
-    // TODO remove not used variables
-    let mut wtr = WriterBuilder::new().from_path(&path_csv)?;
-
-    // https://doc.rust-lang.org/rust-by-example/std_misc/file/create.html
-    let mut file_csv = get_new_file(&path_csv)?;
-    let mut file_and_display_csv = FileAndDisplay {
-        display: &display_csv,
-        file: &mut file_csv,
-    };
+    let mut writer_csv = WriterBuilder::new().from_path(&path_csv)?;
     println!("File with logs as csv: {}", path_csv.display());
     let path_error = path_to_check.join("error.txt");
     let display_error = path_error.display();
+    // https://doc.rust-lang.org/rust-by-example/std_misc/file/create.html
     let mut file_error = get_new_file(&path_error)?;
     let mut file_and_display_error = FileAndDisplay {
         display: &display_error,
         file: &mut file_error,
     };
     println!("File with not parsed logs: {}", path_error.display());
-    let csv_headers = "remote_addr,remote_user,time_local,request,status,body_bytes_sent,http_referer,http_user_agent".to_string();
-    write_line_to_file(&mut file_and_display_csv, csv_headers)?;
     if file_or_path_to_check.is_file() {
         export_to_csv(
             &config.file_or_path,
-            &mut file_and_display_csv,
+            &mut writer_csv,
             &mut file_and_display_error,
-            &mut wtr,
         )?;
     } else if file_or_path_to_check.is_dir() {
         let filenames = get_filenames_to_analyze_in_path(&config.file_or_path)?;
@@ -108,9 +97,8 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
             };
             export_to_csv(
                 &file_str,
-                &mut file_and_display_csv,
+                &mut writer_csv,
                 &mut file_and_display_error,
-                &mut wtr,
             )?;
         }
     }
@@ -155,9 +143,8 @@ fn get_log_filenames_sort_reverse(filenames: &Vec<&str>) -> Vec<String> {
 
 fn export_to_csv(
     file_to_check: &str,
-    mut file_and_display_csv: &mut FileAndDisplay,
+    writer_csv: &mut Writer<File>,
     mut file_and_display_error: &mut FileAndDisplay,
-    mut wtr: &mut Writer<File>,
 ) -> Result<(), Box<dyn Error>> {
     println!("Init file: {}", file_to_check);
 
@@ -195,11 +182,11 @@ fn export_to_csv(
             }
             Some(log_csv) => {
                 //https://docs.rs/csv/latest/csv/tutorial/index.html#writing-csv
-                wtr.serialize(log_csv)?;
+                writer_csv.serialize(log_csv)?;
             }
         }
     }
-    wtr.flush()?;
+    writer_csv.flush()?;
     Ok(())
 }
 
