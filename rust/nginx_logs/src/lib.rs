@@ -95,11 +95,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
                 true => format!("{}{}", config.file_or_path, filename),
                 false => format!("{}/{}", config.file_or_path, filename),
             };
-            export_to_csv(
-                &file_str,
-                &mut writer_csv,
-                &mut file_and_display_error,
-            )?;
+            export_to_csv(&file_str, &mut writer_csv, &mut file_and_display_error)?;
         }
     }
     Ok(())
@@ -149,32 +145,9 @@ fn export_to_csv(
     println!("Init file: {}", file_to_check);
 
     let lines = read_lines(file_to_check).expect("Something went wrong reading the file");
-    lazy_static! {
-        static ref RE: Regex = Regex::new(
-            r#"(?x)
-          (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) # IPv4
-          \s-\s
-          (.+)                                 # Remote user
-          \s\[
-          (.+)                                 # Time local
-          \]\s"
-          (.*)                                 # Request
-          "\s
-          (\d{1,3})                            # Status
-          \s
-          (\d+)                                # Body bytes sent
-          \s"
-          (.+)                                 # HTTP referer
-          "\s"
-          (.+)                                 # HTTP user agent
-          "
-        "#,
-        )
-        .unwrap();
-    }
     for line in lines {
         let log_line = line.expect("Something went wrong reading the line");
-        let log = get_log(&log_line, &RE);
+        let log = get_log(&log_line);
         match log {
             None => {
                 eprintln!("Not parsed: {}", log_line);
@@ -202,8 +175,7 @@ fn write_line_to_file(file_and_display: &mut FileAndDisplay, line: String) -> Re
     if let Err(e) = file_and_display.file.write_all(line.as_bytes()) {
         return Err(format!(
             "couldn't write to {}: {}",
-            file_and_display.display,
-            e.to_string()
+            file_and_display.display, e
         ));
     }
     if let Err(e) = file_and_display.file.write_all(b"\n") {
@@ -221,8 +193,31 @@ where
     Ok(io::BufReader::new(file).lines())
 }
 
-fn get_log<'a>(text: &'a str, re: &'a Regex) -> Option<Log<'a>> {
-    re.captures(text).and_then(|cap| {
+fn get_log<'a>(text: &'a str) -> Option<Log<'a>> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new(
+            r#"(?x)
+          (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) # IPv4
+          \s-\s
+          (.+)                                 # Remote user
+          \s\[
+          (.+)                                 # Time local
+          \]\s"
+          (.*)                                 # Request
+          "\s
+          (\d{1,3})                            # Status
+          \s
+          (\d+)                                # Body bytes sent
+          \s"
+          (.+)                                 # HTTP referer
+          "\s"
+          (.+)                                 # HTTP user agent
+          "
+        "#,
+        )
+        .unwrap();
+    }
+    RE.captures(text).and_then(|cap| {
         let groups = (
             cap.get(1),
             cap.get(2),
