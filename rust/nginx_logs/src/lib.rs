@@ -71,7 +71,8 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         false => file_or_path_to_check,
     };
     let path_csv = path_to_check.join("result.csv");
-    let mut writer_csv = WriterBuilder::new().from_path(&path_csv)?;
+    //https://docs.rs/csv/latest/csv/tutorial/index.html#writing-csv
+    let mut writer_csv = get_csv_writer_builder().from_path(&path_csv)?;
     println!("File with logs as csv: {}", path_csv.display());
     let path_error = path_to_check.join("error.txt");
     let display_error = path_error.display();
@@ -99,6 +100,10 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         }
     }
     Ok(())
+}
+
+fn get_csv_writer_builder() -> WriterBuilder {
+    WriterBuilder::new()
 }
 
 fn get_filenames_to_analyze_in_path(path: &str) -> Result<Vec<String>, Box<dyn Error>> {
@@ -154,7 +159,6 @@ fn export_to_csv(
                 write_line_to_file(file_and_display_error, log_line)?;
             }
             Some(log_csv) => {
-                //https://docs.rs/csv/latest/csv/tutorial/index.html#writing-csv
                 writer_csv.serialize(log_csv)?;
             }
         }
@@ -193,7 +197,7 @@ where
     Ok(io::BufReader::new(file).lines())
 }
 
-fn get_log<'a>(text: &'a str) -> Option<Log<'a>> {
+fn get_log(text: &str) -> Option<Log> {
     lazy_static! {
         static ref RE: Regex = Regex::new(
             r#"(?x)
@@ -276,5 +280,24 @@ mod tests {
             ],
             get_log_filenames_sort_reverse(&filenames)
         );
+    }
+
+    //https://docs.rs/csv/latest/csv/struct.WriterBuilder.html#example-with-headers
+    #[test]
+    fn test_export_to_csv_escapes_comma() -> Result<(), Box<dyn Error>> {
+        let mut wtr = get_csv_writer_builder().has_headers(false).from_writer(vec![]);
+        wtr.serialize(Log {
+            remote_addr: "foo",
+            remote_user: "foo",
+            time_local: "foo",
+            request: "foo, bar",
+            status: "foo",
+            body_bytes_sent: "foo",
+            http_referer: "foo",
+            http_user_agent: "foo",
+        })?;
+        let data = String::from_utf8(wtr.into_inner()?)?;
+        assert_eq!(data, "foo,foo,foo,\"foo, bar\",foo,foo,foo,foo\n");
+        Ok(())
     }
 }
