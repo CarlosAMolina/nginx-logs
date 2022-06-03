@@ -117,7 +117,7 @@ fn get_filenames_to_analyze_in_path(path: &str) -> Result<Vec<String>, Box<dyn E
     Ok(get_log_filenames_sort_reverse(&filenames))
 }
 
-fn get_log_filenames_sort_reverse(filenames: &Vec<&str>) -> Vec<String> {
+fn get_log_filenames_sort_reverse(filenames: &[&str]) -> Vec<String> {
     lazy_static! {
         static ref FILE_NUMBER: Regex =
             Regex::new(r"^access\.log\.(?P<file_number>[0-9]+)").unwrap();
@@ -129,7 +129,7 @@ fn get_log_filenames_sort_reverse(filenames: &Vec<&str>) -> Vec<String> {
                 .map(|number| numbers.push(number.as_str().parse::<u8>().unwrap()))
         });
     }
-    numbers.sort();
+    numbers.sort_unstable();
     numbers.reverse();
     let mut result = Vec::<String>::new();
     for number in numbers.iter() {
@@ -144,7 +144,7 @@ fn get_log_filenames_sort_reverse(filenames: &Vec<&str>) -> Vec<String> {
 fn export_to_csv(
     file_to_check: &str,
     writer_csv: &mut Writer<File>,
-    mut file_and_display_error: &mut FileAndDisplay,
+    file_and_display_error: &mut FileAndDisplay,
 ) -> Result<(), Box<dyn Error>> {
     println!("Init file: {}", file_to_check);
 
@@ -178,7 +178,7 @@ fn export_to_csv(
         match log {
             None => {
                 eprintln!("Not parsed: {}", log_line);
-                write_line_to_file(&mut file_and_display_error, log_line)?;
+                write_line_to_file(file_and_display_error, log_line)?;
             }
             Some(log_csv) => {
                 //https://docs.rs/csv/latest/csv/tutorial/index.html#writing-csv
