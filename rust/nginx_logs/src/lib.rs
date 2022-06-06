@@ -121,7 +121,7 @@ fn get_filenames_to_analyze_in_path(path: &str) -> Result<Vec<String>, Box<dyn E
 fn get_log_filenames_sort_reverse(filenames: &[&str]) -> Vec<String> {
     lazy_static! {
         static ref FILE_NUMBER: Regex =
-            Regex::new(r"^access\.log\.(?P<file_number>[0-9]+)").unwrap();
+            Regex::new(r"^access\.log\.(?P<file_number>\d+)").unwrap();
     }
     let mut numbers = Vec::<u8>::new();
     for filename in filenames.iter() {
@@ -201,21 +201,22 @@ fn get_log(text: &str) -> Option<Log> {
     lazy_static! {
         static ref RE: Regex = Regex::new(
             r#"(?x)
-          (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) # IPv4
+          ^
+          ((\d{1,3}[\.]){3}\d{1,3}) # IPv4
           \s-\s
-          (.+)                                 # Remote user
+          (.+)                      # Remote user
           \s\[
-          (.+)                                 # Time local
+          (.+)                      # Time local
           \]\s"
-          (.*)                                 # Request
+          (.*)                      # Request
           "\s
-          (\d{1,3})                            # Status
+          (\d{1,3})                 # Status
           \s
-          (\d+)                                # Body bytes sent
+          (\d+)                     # Body bytes sent
           \s"
-          (.+)                                 # HTTP referer
+          (.+)                      # HTTP referer
           "\s"
-          (.+)                                 # HTTP user agent
+          (.+)                      # HTTP user agent
           "
         "#,
         )
