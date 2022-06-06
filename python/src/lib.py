@@ -1,3 +1,6 @@
+import re
+
+
 class Log:
     def __init__(
         self,
@@ -20,9 +23,9 @@ class Log:
         self.http_user_agent = http_user_agent
 
 
-
 # https://docs.nginx.com/nginx/admin-guide/monitoring/logging/
-REGEX = re.complie(r"""
+REGEX = re.compile(
+    r"""
     ^
     ((\d{1,3}[\.]){3}\d{1,3}) # IPv4
     \s-\s
@@ -40,19 +43,24 @@ REGEX = re.complie(r"""
     "\s"
     (.+)                      # HTTP user agent
     "
-""", re.VERBOSE)
+""",
+    re.VERBOSE,
+)
 
 
-def get_log(self, line: str) -> Log:
-    self._match = re.search(REGEX, line)
-    return None if self._match is None else Log(
-        remote_addr=self._match.group(1),
-        remote_user=self._match.group(3),
-        time_local=self._match.group(4),
-        request=self._match.group(5),
-        status=self._match.group(6),
-        body_bytes_sent=self._match.group(7),
-        http_referer=self._match.group(8),
-        http_user_agent=self._match.group(9),
+def get_log(line: str) -> Log:
+    match = re.search(REGEX, line)
+    return (
+        None
+        if match is None
+        else Log(
+            remote_addr=match.group(1),
+            remote_user=match.group(3),
+            time_local=match.group(4),
+            request=match.group(5),
+            status=match.group(6),
+            body_bytes_sent=match.group(7),
+            http_referer=match.group(8),
+            http_user_agent=match.group(9),
+        )
     )
-
