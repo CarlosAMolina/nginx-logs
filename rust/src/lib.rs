@@ -30,7 +30,7 @@ impl Config {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, PartialEq, Serialize)]
 struct Log<'a> {
     remote_addr: &'a str,
     remote_user: &'a str,
@@ -120,8 +120,7 @@ fn get_filenames_to_analyze_in_path(path: &str) -> Result<Vec<String>, Box<dyn E
 
 fn get_log_filenames_sort_reverse(filenames: &[&str]) -> Vec<String> {
     lazy_static! {
-        static ref FILE_NUMBER: Regex =
-            Regex::new(r"^access\.log\.(?P<file_number>\d+)").unwrap();
+        static ref FILE_NUMBER: Regex = Regex::new(r"^access\.log\.(?P<file_number>\d+)").unwrap();
     }
     let mut numbers = Vec::<u8>::new();
     for filename in filenames.iter() {
@@ -225,13 +224,13 @@ fn get_log(text: &str) -> Option<Log> {
     RE.captures(text).and_then(|cap| {
         let groups = (
             cap.get(1),
-            cap.get(2),
             cap.get(3),
             cap.get(4),
             cap.get(5),
             cap.get(6),
             cap.get(7),
             cap.get(8),
+            cap.get(9),
         );
         match groups {
             (
@@ -286,7 +285,9 @@ mod tests {
     //https://docs.rs/csv/latest/csv/struct.WriterBuilder.html#example-with-headers
     #[test]
     fn test_export_to_csv_escapes_comma() -> Result<(), Box<dyn Error>> {
-        let mut wtr = get_csv_writer_builder().has_headers(false).from_writer(vec![]);
+        let mut wtr = get_csv_writer_builder()
+            .has_headers(false)
+            .from_writer(vec![]);
         wtr.serialize(Log {
             remote_addr: "foo",
             remote_user: "foo",
@@ -300,5 +301,30 @@ mod tests {
         let data = String::from_utf8(wtr.into_inner()?)?;
         assert_eq!(data, "foo,foo,foo,\"foo, bar\",foo,foo,foo,foo\n");
         Ok(())
+    }
+
+    #[test]
+    fn test_get_log_for_parsed_log() {
+        assert_eq!(
+            Some(Log{
+                remote_addr: "8.8.8.8",
+                remote_user: "-",
+                time_local: "28/Oct/2021:00:18:22 +0100",
+                request: "GET / HTTP/1.1",
+                status: "200",
+                body_bytes_sent: "77",
+                http_referer: "-",
+                http_user_agent: "foo bar 1"}
+                ),
+            get_log("8.8.8.8 - - [28/Oct/2021:00:18:22 +0100] \"GET / HTTP/1.1\" 200 77 \"-\" \"foo bar 1\"")
+        );
+    }
+
+    #[test]
+    fn test_get_log_for_not_parsed_log() {
+        assert_eq!(
+            None,
+            get_log("8.8.8.8 - - [28/Oct/2021:00:18:22 +0100 \"GET / HTTP/1.1\" 200 77 \"-\" \"foo bar 1\"")
+        );
     }
 }

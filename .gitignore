@@ -1,6 +1,6 @@
 *.swp
 __pycache__
-/rust/nginx_logs/error.txt
-/rust/nginx_logs/result.csv
-/rust/nginx_logs/target/
+/rust/error.txt
+/rust/result.csv
+/rust/target/
 /python/env
