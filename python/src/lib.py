@@ -108,12 +108,14 @@ def get_filenames_to_analyze_in_path(path: Path) -> List[str]:
 
 def get_log_filenames_sort_reverse(filenames: List[str]) -> List[str]:
     regex_file_number = r"^access\.log\.(?P<file_number>\d+)"
-    numbers = []
-    # TODO use finditer
-    for filename in filenames:
-        search_result = re.search(regex_file_number, str(filename))
-        if search_result is not None:
-            numbers.append(int(search_result.group("file_number")))
+    search_results = [
+        re.search(regex_file_number, str(filename)) for filename in filenames
+    ]
+    numbers = [
+        int(search_result.group("file_number"))
+        for search_result in search_results
+        if search_result is not None
+    ]
     numbers.sort(reverse=True)
     result = [f"access.log.{number}" for number in numbers]
     if "access.log" in filenames:
