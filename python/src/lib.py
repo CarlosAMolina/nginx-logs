@@ -129,18 +129,21 @@ def run(args):
     print(f"File with logs as csv: {path_csv}")
     path_error = path_to_check.joinpath("error.txt")
     print(f"File with not parsed logs: {path_error}")
-    if file_or_path_to_check.is_file():
-        export_file_to_csv(file_or_path_to_check, path_csv, path_error)
-    elif file_or_path_to_check.is_dir():
-        for filename in get_filenames_to_analyze_in_path(file_or_path_to_check):
-            pass  # TODO delete
+    with open(path_csv, "w") as path_csv_, open(path_error, "w") as path_error_:
+        writer_csv = csv.DictWriter(path_csv_, fieldnames=Log.DICT_KEYS)
+        writer_csv.writeheader()
+        if file_or_path_to_check.is_file():
+            export_file_to_csv(file_or_path_to_check, writer_csv, path_error_)
+        elif file_or_path_to_check.is_dir():
+            for filename in get_filenames_to_analyze_in_path(file_or_path_to_check):
+                export_file_to_csv(
+                    path_to_check.joinpath(filename), writer_csv, path_error_
+                )
 
 
 def get_filenames_to_analyze_in_path(path: Path) -> List[str]:
     filenames = [file_path.name for file_path in path.glob("*")]
-    result = get_log_filenames_sort_reverse(filenames)
-    print(result)
-    return result
+    return get_log_filenames_sort_reverse(filenames)
 
 
 def get_log_filenames_sort_reverse(filenames: List[str]) -> List[str]:
@@ -160,20 +163,15 @@ def get_log_filenames_sort_reverse(filenames: List[str]) -> List[str]:
     return result
 
 
-def export_file_to_csv(path_to_check: str, path_result: str, path_errors: str):
+def export_file_to_csv(path_to_check: str, writer_csv, writable_error):
     print(f"Init file: {path_to_check}")
     with open(path_to_check, "r") as path_to_check_:
-        with open(path_result, "w") as path_result_, open(
-            path_errors, "w"
-        ) as path_errors_:
-            writer_csv = csv.DictWriter(path_result_, fieldnames=Log.DICT_KEYS)
-            writer_csv.writeheader()
-            for line in path_to_check_.read().splitlines():
-                if len(line) != 0:
-                    log = get_log(line)
-                    if log is None:
-                        print(f"Not parsed {line}")
-                        path_errors_.write(line)
-                        path_errors_.write("\n")
-                    else:
-                        writer_csv.writerow(log.asdict())
+        for line in path_to_check_.read().splitlines():
+            if len(line) != 0:
+                log = get_log(line)
+                if log is None:
+                    print(f"Not parsed {line}")
+                    writable_error.write(line)
+                    writable_error.write("\n")
+                else:
+                    writer_csv.writerow(log.asdict())
