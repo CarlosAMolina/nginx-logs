@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import List, Optional
 import argparse
+import csv
 import re
 
 
@@ -16,6 +17,18 @@ def get_args_parsed():
 
 
 class Log:
+
+    DICT_KEYS = [
+        "remote_addr",
+        "remote_user",
+        "time_local",
+        "request",
+        "status",
+        "body_bytes_sent",
+        "http_referer",
+        "http_user_agent",
+    ]
+
     def __init__(
         self,
         remote_addr: str,
@@ -47,6 +60,18 @@ class Log:
             self.http_referer,
             self.http_user_agent,
         )
+
+    def asdict(self) -> dict:
+        return {
+            "remote_addr": self.remote_addr,
+            "remote_user": self.remote_user,
+            "time_local": self.time_local,
+            "request": self.request,
+            "status": self.status,
+            "body_bytes_sent": self.body_bytes_sent,
+            "http_referer": self.http_referer,
+            "http_user_agent": self.http_user_agent,
+        }
 
 
 # https://docs.nginx.com/nginx/admin-guide/monitoring/logging/
@@ -138,9 +163,11 @@ def get_log_filenames_sort_reverse(filenames: List[str]) -> List[str]:
 def export_file_to_csv(path_to_check: str, path_result: str, path_errors: str):
     print(f"Init file: {path_to_check}")
     with open(path_to_check, "r") as path_to_check_:
-        with open(path_result, "a") as path_result_, open(
-            path_errors, "a"
+        with open(path_result, "w") as path_result_, open(
+            path_errors, "w"
         ) as path_errors_:
+            writer_csv = csv.DictWriter(path_result_, fieldnames=Log.DICT_KEYS)
+            writer_csv.writeheader()
             for line in path_to_check_.read().splitlines():
                 if len(line) != 0:
                     log = get_log(line)
@@ -149,5 +176,4 @@ def export_file_to_csv(path_to_check: str, path_result: str, path_errors: str):
                         path_errors_.write(line)
                         path_errors_.write("\n")
                     else:
-                        path_result_.write(str(log))
-                        path_result_.write("\n")
+                        writer_csv.writerow(log.asdict())

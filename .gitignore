@@ -1,5 +1,7 @@
 *.swp
 __pycache__
+/python/error.txt
+/python/result.csv
 /rust/error.txt
 /rust/result.csv
 /rust/target/
