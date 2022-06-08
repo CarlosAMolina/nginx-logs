@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 import argparse
 import re
 
@@ -36,6 +36,18 @@ class Log:
         self.http_referer = http_referer
         self.http_user_agent = http_user_agent
 
+    def __repr__(self):
+        return "{},{},{},{},{},{},{},{}".format(
+            self.remote_addr,
+            self.remote_user,
+            self.time_local,
+            self.request,
+            self.status,
+            self.body_bytes_sent,
+            self.http_referer,
+            self.http_user_agent,
+        )
+
 
 # https://docs.nginx.com/nginx/admin-guide/monitoring/logging/
 REGEX = re.compile(
@@ -62,7 +74,7 @@ REGEX = re.compile(
 )
 
 
-def get_log(line: str) -> Log:
+def get_log(line: str) -> Optional[Log]:
     match = re.search(REGEX, line)
     return (
         None
@@ -93,7 +105,7 @@ def run(args):
     path_error = path_to_check.joinpath("error.txt")
     print(f"File with not parsed logs: {path_error}")
     if file_or_path_to_check.is_file():
-        print("Checking file")  # TODO delete
+        export_file_to_csv(file_or_path_to_check, path_csv, path_error)
     elif file_or_path_to_check.is_dir():
         for filename in get_filenames_to_analyze_in_path(file_or_path_to_check):
             pass  # TODO delete
@@ -121,3 +133,21 @@ def get_log_filenames_sort_reverse(filenames: List[str]) -> List[str]:
     if "access.log" in filenames:
         result.append("access.log")
     return result
+
+
+def export_file_to_csv(path_to_check: str, path_result: str, path_errors: str):
+    print(f"Init file: {path_to_check}")
+    with open(path_to_check, "r") as path_to_check_:
+        with open(path_result, "a") as path_result_, open(
+            path_errors, "a"
+        ) as path_errors_:
+            for line in path_to_check_.read().splitlines():
+                if len(line) != 0:
+                    log = get_log(line)
+                    if log is None:
+                        print(f"Not parsed {line}")
+                        path_errors_.write(line)
+                        path_errors_.write("\n")
+                    else:
+                        path_result_.write(str(log))
+                        path_result_.write("\n")
