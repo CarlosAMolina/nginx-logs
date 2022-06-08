@@ -61,7 +61,7 @@ impl<'a> fmt::Display for Log<'a> {
 
 struct FileAndDisplay<'a> {
     display: &'a std::path::Display<'a>,
-    file: &'a mut std::fs::File,
+    file: &'a mut io::BufWriter<std::fs::File>,
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
@@ -166,12 +166,12 @@ fn export_file_to_csv(
     Ok(())
 }
 
-fn get_new_file(path: &std::path::Path) -> Result<std::fs::File, String> {
+fn get_new_file(path: &std::path::Path) -> Result<io::BufWriter<std::fs::File>, String> {
     let file = match File::create(&path) {
         Err(why) => return Err(format!("couldn't create {}: {}", path.display(), why)),
         Ok(file) => file,
     };
-    Ok(file)
+    Ok(io::BufWriter::new(file))
 }
 
 fn write_line_to_file(file_and_display: &mut FileAndDisplay, line: String) -> Result<(), String> {
@@ -217,6 +217,7 @@ fn get_log(text: &str) -> Option<Log> {
           "\s"
           (.+)                      # HTTP user agent
           "
+          $
         "#,
         )
         .unwrap();
