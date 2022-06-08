@@ -9,4 +9,6 @@ if __name__ == "__main__":
     args = lib.get_args_parsed()
     lib.run(args)
     end = timer()
-    print(f"Time elapsed: {end - start}s")
+    duration = end - start
+    # print(f"Time elapsed: {duration}s")
+    print(f"Time elapsed: {duration * 1000}ms")
