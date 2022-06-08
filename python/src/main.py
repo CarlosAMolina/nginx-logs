@@ -1,7 +1,7 @@
 import lib
+from timeit import default_timer as timer
 
 # https://stackoverflow.com/questions/7370801/how-to-measure-elapsed-time-in-python#7370824
-from timeit import default_timer as timer
 
 
 if __name__ == "__main__":
