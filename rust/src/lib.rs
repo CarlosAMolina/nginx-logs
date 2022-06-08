@@ -84,7 +84,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     };
     println!("File with not parsed logs: {}", path_error.display());
     if file_or_path_to_check.is_file() {
-        export_to_csv(
+        export_file_to_csv(
             &config.file_or_path,
             &mut writer_csv,
             &mut file_and_display_error,
@@ -96,7 +96,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
                 true => format!("{}{}", config.file_or_path, filename),
                 false => format!("{}/{}", config.file_or_path, filename),
             };
-            export_to_csv(&file_str, &mut writer_csv, &mut file_and_display_error)?;
+            export_file_to_csv(&file_str, &mut writer_csv, &mut file_and_display_error)?;
         }
     }
     Ok(())
@@ -141,7 +141,7 @@ fn get_log_filenames_sort_reverse(filenames: &[&str]) -> Vec<String> {
     result
 }
 
-fn export_to_csv(
+fn export_file_to_csv(
     file_to_check: &str,
     writer_csv: &mut Writer<File>,
     file_and_display_error: &mut FileAndDisplay,
