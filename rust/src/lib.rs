@@ -7,8 +7,6 @@ use std::path::Path;
 
 use csv::Writer;
 use csv::WriterBuilder;
-use lazy_static::lazy_static;
-use regex::Regex;
 
 pub struct Config {
     file_or_path: String,
@@ -124,7 +122,6 @@ mod log {
             }
         })
     }
-
 }
 
 use crate::log as m_log;
@@ -185,30 +182,41 @@ fn get_filenames_to_analyze_in_path(path: &str) -> Result<Vec<String>, Box<dyn E
         .iter()
         .map(|e| e.file_name().unwrap().to_str().unwrap())
         .collect::<Vec<&str>>();
-    Ok(get_log_filenames_sort_reverse(&filenames))
+    Ok(sort_filenames::get_log_filenames_sort_reverse(&filenames))
 }
 
-fn get_log_filenames_sort_reverse(filenames: &[&str]) -> Vec<String> {
-    lazy_static! {
-        static ref FILE_NUMBER: Regex = Regex::new(r"^access\.log\.(?P<file_number>\d+)").unwrap();
+mod sort_filenames {
+    use lazy_static::lazy_static;
+    use regex::Regex;
+
+    pub fn get_log_filenames_sort_reverse(filenames: &[&str]) -> Vec<String> {
+        let mut numbers = get_filenames_numbers(filenames);
+        numbers.sort_unstable();
+        numbers.reverse();
+        let mut result = Vec::<String>::new();
+        for number in numbers.iter() {
+            result.push(format!("access.log.{}", number));
+        }
+        if filenames.contains(&"access.log") {
+            result.push("access.log".to_string());
+        }
+        result
     }
-    let mut numbers = Vec::<u8>::new();
-    for filename in filenames.iter() {
-        FILE_NUMBER.captures(filename).and_then(|cap| {
-            cap.name("file_number")
-                .map(|number| numbers.push(number.as_str().parse::<u8>().unwrap()))
-        });
+
+    fn get_filenames_numbers(filenames: &[&str]) -> Vec<u8> {
+        lazy_static! {
+            static ref FILE_NUMBER: Regex =
+                Regex::new(r"^access\.log\.(?P<file_number>\d+)").unwrap();
+        }
+        let mut numbers = Vec::<u8>::new();
+        for filename in filenames.iter() {
+            FILE_NUMBER.captures(filename).and_then(|cap| {
+                cap.name("file_number")
+                    .map(|number| numbers.push(number.as_str().parse::<u8>().unwrap()))
+            });
+        }
+        numbers
     }
-    numbers.sort_unstable();
-    numbers.reverse();
-    let mut result = Vec::<String>::new();
-    for number in numbers.iter() {
-        result.push(format!("access.log.{}", number));
-    }
-    if filenames.contains(&"access.log") {
-        result.push("access.log".to_string());
-    }
-    result
 }
 
 fn export_file_to_csv(
@@ -266,12 +274,12 @@ where
     Ok(io::BufReader::new(file).lines())
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::log::get_log;
     use crate::log::Log;
+    use crate::sort_filenames;
+
     #[test]
     fn test_get_log_filenames_sort_reverse() {
         let filenames = vec![
@@ -290,7 +298,7 @@ mod tests {
                 "access.log.1",
                 "access.log",
             ],
-            get_log_filenames_sort_reverse(&filenames)
+            sort_filenames::get_log_filenames_sort_reverse(&filenames)
         );
     }
 
@@ -328,7 +336,7 @@ mod tests {
                 http_referer: "-",
                 http_user_agent: "foo bar 1"}
                 ),
-            get_log("8.8.8.8 - - [28/Oct/2021:00:18:22 +0100] \"GET / HTTP/1.1\" 200 77 \"-\" \"foo bar 1\"")
+            log::get_log("8.8.8.8 - - [28/Oct/2021:00:18:22 +0100] \"GET / HTTP/1.1\" 200 77 \"-\" \"foo bar 1\"")
         );
     }
 
@@ -336,7 +344,7 @@ mod tests {
     fn test_get_log_for_not_parsed_log() {
         assert_eq!(
             None,
-            get_log("8.8.8.8 - - [28/Oct/2021:00:18:22 +0100 \"GET / HTTP/1.1\" 200 77 \"-\" \"foo bar 1\"")
+            log::get_log("8.8.8.8 - - [28/Oct/2021:00:18:22 +0100 \"GET / HTTP/1.1\" 200 77 \"-\" \"foo bar 1\"")
         );
     }
 }
