@@ -156,28 +156,15 @@ def get_log_filenames_sort_reverse(filenames: List[str]) -> List[str]:
 
 
 def get_filenames_numbers(filenames: List[str]) -> List[int]:
-    regex_file_number = r"^access\.log\.(?P<file_number>\d+)"
-    search_results = [
-        re.search(regex_file_number, str(filename)) for filename in filenames
-    ]
-    return [
-        int(search_result.group("file_number"))
-        for search_result in search_results
-        if search_result is not None
-    ]
-
-
-# def get_filenames_numbers_with_split(filenames: List[str]) -> List[int]:
-#    result = []
-#    for filename in filenames:
-#        last_part = filename.split(".")[-1]
-#        try:
-#            number = int(last_part)
-#            result.append(number)
-#        except ValueError:
-#            pass
-#    return result
-#
+    result = []
+    for filename in filenames:
+        last_part = filename.split(".")[-1]
+        try:
+            number = int(last_part)
+            result.append(number)
+        except ValueError:
+            pass
+    return result
 
 
 def export_file_to_csv(path_to_check: str, writer_csv, writable_error):
