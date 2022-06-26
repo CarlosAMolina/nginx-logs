@@ -186,9 +186,6 @@ fn get_filenames_to_analyze_in_path(path: &str) -> Result<Vec<String>, Box<dyn E
 }
 
 mod sort_filenames {
-    use lazy_static::lazy_static;
-    use regex::Regex;
-
     pub fn get_log_filenames_sort_reverse(filenames: &[&str]) -> Vec<String> {
         let mut numbers = get_filenames_numbers(filenames);
         numbers.sort_unstable();
@@ -204,19 +201,16 @@ mod sort_filenames {
     }
 
     fn get_filenames_numbers(filenames: &[&str]) -> Vec<u8> {
-        lazy_static! {
-            static ref FILE_NUMBER: Regex =
-                Regex::new(r"^access\.log\.(?P<file_number>\d+)").unwrap();
-        }
         let mut numbers = Vec::<u8>::new();
         for filename in filenames.iter() {
-            FILE_NUMBER.captures(filename).and_then(|cap| {
-                cap.name("file_number")
-                    .map(|number| numbers.push(number.as_str().parse::<u8>().unwrap()))
-            });
+            let last_part = filename.split('.').last();
+            if let Ok(number) = last_part.unwrap().parse::<u8>() {
+                numbers.push(number)
+            }
         }
         numbers
     }
+
 }
 
 fn export_file_to_csv(
