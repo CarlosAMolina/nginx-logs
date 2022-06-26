@@ -100,7 +100,7 @@ REGEX = re.compile(
 
 
 def get_log(line: str) -> Optional[Log]:
-    match = re.search(REGEX, line)
+    match = re.match(REGEX, line)
     return (
         None
         if match is None
