@@ -161,10 +161,11 @@ mod mod_filenames {
         numbers.reverse();
         let mut result = Vec::<String>::new();
         for number in numbers.iter() {
-            result.push(format!("access.log.{}", number));
-        }
-        if filenames_with_logs.contains(&"access.log") {
-            result.push("access.log".to_string());
+            if number == &0 {
+                result.push("access.log".to_string());
+            } else {
+                result.push(format!("access.log.{}", number))
+            }
         }
         result
     }
@@ -182,9 +183,13 @@ mod mod_filenames {
     fn get_filenames_numbers(filenames: &[&str]) -> Vec<u8> {
         let mut result = Vec::<u8>::new();
         for filename in filenames.iter() {
-            let last_part = filename.split('.').last();
-            if let Ok(number) = last_part.unwrap().parse::<u8>() {
-                result.push(number)
+            if filename == &"access.log" {
+                result.push(0);
+            } else {
+                let last_part = filename.split('.').last();
+                if let Ok(number) = last_part.unwrap().parse::<u8>() {
+                    result.push(number)
+                }
             }
         }
         result
