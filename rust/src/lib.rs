@@ -150,33 +150,44 @@ fn get_filenames_to_analyze_in_path(path: &str) -> Result<Vec<String>, Box<dyn E
         .iter()
         .map(|e| e.file_name().unwrap().to_str().unwrap())
         .collect::<Vec<&str>>();
-    Ok(sort_filenames::get_log_filenames_sort_reverse(&filenames))
+    Ok(mod_filenames::get_log_filenames_sort_reverse(&filenames))
 }
 
-mod sort_filenames {
+mod mod_filenames {
     pub fn get_log_filenames_sort_reverse(filenames: &[&str]) -> Vec<String> {
-        let mut numbers = get_filenames_numbers(filenames);
+        let filenames_with_logs = get_filenames_with_logs(filenames);
+        let mut numbers = get_filenames_numbers(&filenames_with_logs);
         numbers.sort_unstable();
         numbers.reverse();
         let mut result = Vec::<String>::new();
         for number in numbers.iter() {
             result.push(format!("access.log.{}", number));
         }
-        if filenames.contains(&"access.log") {
+        if filenames_with_logs.contains(&"access.log") {
             result.push("access.log".to_string());
         }
         result
     }
 
+    fn get_filenames_with_logs<'a>(filenames: &'a [&str]) -> Vec<&'a str> {
+        let mut result = Vec::<&str>::new();
+        for filename in filenames.iter() {
+            if filename.starts_with("access.log") {
+                result.push(filename);
+            }
+        }
+        result
+    }
+
     fn get_filenames_numbers(filenames: &[&str]) -> Vec<u8> {
-        let mut numbers = Vec::<u8>::new();
+        let mut result = Vec::<u8>::new();
         for filename in filenames.iter() {
             let last_part = filename.split('.').last();
             if let Ok(number) = last_part.unwrap().parse::<u8>() {
-                numbers.push(number)
+                result.push(number)
             }
         }
-        numbers
+        result
     }
 
 }
@@ -240,12 +251,13 @@ where
 mod tests {
     use super::*;
     use crate::log::Log;
-    use crate::sort_filenames;
+    use crate::mod_filenames;
 
     #[test]
     fn test_get_log_filenames_sort_reverse() {
         let filenames = vec![
             "foo.txt",
+            "error.log.111",
             "access.log",
             "access.log.5",
             "access.log.2",
@@ -260,9 +272,10 @@ mod tests {
                 "access.log.1",
                 "access.log",
             ],
-            sort_filenames::get_log_filenames_sort_reverse(&filenames)
+            mod_filenames::get_log_filenames_sort_reverse(&filenames)
         );
     }
+
 
     //https://docs.rs/csv/latest/csv/struct.WriterBuilder.html#example-with-headers
     #[test]
