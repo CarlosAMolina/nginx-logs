@@ -158,13 +158,21 @@ def get_log_filenames_sort_reverse(filenames: List[str]) -> List[str]:
 def get_filenames_numbers(filenames: List[str]) -> List[int]:
     result = []
     for filename in filenames:
-        last_part = filename.split(".")[-1]
+        last_part = get_filename_possible_number(filename)
         try:
             number = int(last_part)
             result.append(number)
         except ValueError:
             pass
     return result
+
+
+def get_filename_possible_number(filename: str) -> str:
+    if filename == "access.log":
+        return "0"
+    else:
+        number_index = -2 if filename.endswith(".gz") else -1
+        return filename.split(".")[number_index]
 
 
 def export_file_to_csv(path_to_check: str, writer_csv, writable_error):

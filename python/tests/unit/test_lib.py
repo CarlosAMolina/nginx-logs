@@ -8,21 +8,26 @@ class TestFunctions(unittest.TestCase):
         filenames = [
             "foo.txt",
             "access.log",
-            "access.log.5",
+            "access.log.5.gz",
             "access.log.2",
-            "access.log.10",
-            "access.log.1",
+            "access.log.10.gz",
+            "access.log.1.gz",
         ]
         self.assertEqual(
             [
-                "access.log.10",
-                "access.log.5",
+                "access.log.10.gz",
+                "access.log.5.gz",
                 "access.log.2",
-                "access.log.1",
+                "access.log.1.gz",
                 "access.log",
             ],
             lib.get_log_filenames_sort_reverse(filenames),
         )
+
+    def test_get_filename_possible_number(self):
+        self.assertEqual("0", lib.get_filename_possible_number("access.log"))
+        self.assertEqual("2", lib.get_filename_possible_number("access.log.2"))
+        self.assertEqual("2", lib.get_filename_possible_number("access.log.2.gz"))
 
     def test_get_log_for_parsed_log(self):
         line = (
