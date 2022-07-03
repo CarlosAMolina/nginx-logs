@@ -24,7 +24,7 @@ class TestFunctions(unittest.TestCase):
             lib.get_log_filenames_sort_reverse(filenames),
         )
 
-    def test_get_filenames_and_numbers(self):
+    def test_get_numbers_and_filenames(self):
         filenames = [
             "foo.txt",
             "access.log",
@@ -41,7 +41,7 @@ class TestFunctions(unittest.TestCase):
                 1: "access.log.1.gz",
                 0: "access.log",
             },
-            lib.get_filenames_and_numbers(filenames),
+            lib.get_numbers_and_filenames(filenames),
         )
 
     def test_get_filename_possible_number(self):

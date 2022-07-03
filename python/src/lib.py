@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 import argparse
 import csv
 import re
@@ -147,27 +147,18 @@ def get_filenames_to_analyze_in_path(path: Path) -> List[str]:
 
 
 def get_log_filenames_sort_reverse(filenames: List[str]) -> List[str]:
-    numbers = get_filenames_numbers(filenames)
-    numbers.sort(reverse=True)
-    result = [f"access.log.{number}" for number in numbers]
-    if "access.log" in filenames:
-        result.append("access.log")
-    return result
+    numbers_and_filenames = get_numbers_and_filenames(filenames)
+    numbers_and_filenames_ordered: List[Tuple[int, str]] = sorted(
+        numbers_and_filenames.items(), reverse=True
+    )
+    return [
+        number_and_filename[1]
+        for number_and_filename in numbers_and_filenames_ordered
+        if number_and_filename[1].startswith("access.log")
+    ]
 
 
-def get_filenames_numbers(filenames: List[str]) -> List[int]:
-    result = []
-    for filename in filenames:
-        last_part = get_filename_possible_number(filename)
-        try:
-            number = int(last_part)
-            result.append(number)
-        except ValueError:
-            pass
-    return result
-
-
-def get_filenames_and_numbers(filenames: List[str]) -> Dict[int, str]:
+def get_numbers_and_filenames(filenames: List[str]) -> Dict[int, str]:
     result = {}
     for filename in filenames:
         possible_number = get_filename_possible_number(filename)
