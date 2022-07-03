@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional
 import argparse
 import csv
 import re
@@ -162,6 +162,18 @@ def get_filenames_numbers(filenames: List[str]) -> List[int]:
         try:
             number = int(last_part)
             result.append(number)
+        except ValueError:
+            pass
+    return result
+
+
+def get_filenames_and_numbers(filenames: List[str]) -> Dict[int, str]:
+    result = {}
+    for filename in filenames:
+        possible_number = get_filename_possible_number(filename)
+        try:
+            number = int(possible_number)
+            result.update({number: filename})
         except ValueError:
             pass
     return result

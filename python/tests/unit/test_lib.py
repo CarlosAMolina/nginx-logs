@@ -24,6 +24,26 @@ class TestFunctions(unittest.TestCase):
             lib.get_log_filenames_sort_reverse(filenames),
         )
 
+    def test_get_filenames_and_numbers(self):
+        filenames = [
+            "foo.txt",
+            "access.log",
+            "access.log.5.gz",
+            "access.log.2",
+            "access.log.10.gz",
+            "access.log.1.gz",
+        ]
+        self.assertEqual(
+            {
+                10: "access.log.10.gz",
+                5: "access.log.5.gz",
+                2: "access.log.2",
+                1: "access.log.1.gz",
+                0: "access.log",
+            },
+            lib.get_filenames_and_numbers(filenames),
+        )
+
     def test_get_filename_possible_number(self):
         self.assertEqual("0", lib.get_filename_possible_number("access.log"))
         self.assertEqual("2", lib.get_filename_possible_number("access.log.2"))
