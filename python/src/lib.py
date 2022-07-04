@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 import argparse
 import csv
+import gzip
 import re
 
 
@@ -129,18 +130,17 @@ def run(args):
     print(f"File with logs as csv: {path_csv}")
     path_error = path_to_check.joinpath("error.txt")
     print(f"File with not parsed logs: {path_error}")
-    with open(path_csv, "w") as path_csv_, open(path_error, "w") as path_error_:
-        writer_csv = csv.DictWriter(path_csv_, fieldnames=Log.DICT_KEYS)
+    with open(path_csv, "w") as file_csv, open(path_error, "w") as file_error:
+        writer_csv = csv.DictWriter(file_csv, fieldnames=Log.DICT_KEYS)
         writer_csv.writeheader()
+        export_file_to_csv = FileExport(writer_csv, file_error).export_file_to_csv
         if file_or_path_to_check.is_file():
-            export_file_to_csv(file_or_path_to_check, writer_csv, path_error_)
+            export_file_to_csv(file_or_path_to_check)
         elif file_or_path_to_check.is_dir():
             for filename in FilenamesFilter().get_filenames_to_analyze_in_path(
                 file_or_path_to_check
             ):
-                export_file_to_csv(
-                    path_to_check.joinpath(filename), writer_csv, path_error_
-                )
+                export_file_to_csv(path_to_check.joinpath(filename))
 
 
 class FilenamesFilter:
@@ -178,15 +178,35 @@ class FilenamesFilter:
             return filename.split(".")[number_index]
 
 
-def export_file_to_csv(path_to_check: str, writer_csv, writable_error):
-    print(f"Init file: {path_to_check}")
-    with open(path_to_check, "r") as path_to_check_:
-        for line in path_to_check_.read().splitlines():
-            if len(line) != 0:
-                log = get_log(line)
-                if log is None:
-                    print(f"Not parsed {line}")
-                    writable_error.write(line)
-                    writable_error.write("\n")
-                else:
-                    writer_csv.writerow(log.asdict())
+class FileExport:
+    def __init__(self, writer_csv, writable_error):
+        self._writer_csv = writer_csv
+        self._writable_error = writable_error
+
+    def export_file_to_csv(self, path_to_check: str):
+        if str(path_to_check).endswith(".gz"):
+            self._export_gz_file_to_csv(path_to_check)
+        else:
+            self._export_log_file_to_csv(path_to_check)
+
+    def _export_log_file_to_csv(self, path_to_check: str):
+        print(f"Init file: {path_to_check}")
+        with open(path_to_check, "r") as file:
+            for line in file.read().splitlines():
+                self._export_line(line)
+
+    def _export_gz_file_to_csv(self, path_to_check: str):
+        print(f"Init file: {path_to_check}")
+        with gzip.open(path_to_check, mode="rt") as fp:
+            for line in fp:
+                self._export_line(line)
+
+    def _export_line(self, line: str):
+        if len(line) != 0:
+            log = get_log(line)
+            if log is None:
+                print(f"Not parsed: {line}")
+                self._writable_error.write(line)
+                self._writable_error.write("\n")
+            else:
+                self._writer_csv.writerow(log.asdict())
