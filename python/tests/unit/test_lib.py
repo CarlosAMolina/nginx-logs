@@ -3,7 +3,10 @@ import unittest
 from src import lib
 
 
-class TestFunctions(unittest.TestCase):
+class TestFilenamesFilter(unittest.TestCase):
+    def setUp(self):
+        self._class = lib.FilenamesFilter()
+
     def test_get_log_filenames_sort_reverse(self):
         filenames = [
             "foo.txt",
@@ -21,7 +24,7 @@ class TestFunctions(unittest.TestCase):
                 "access.log.1.gz",
                 "access.log",
             ],
-            lib.get_log_filenames_sort_reverse(filenames),
+            self._class._get_log_filenames_sort_reverse(filenames),
         )
 
     def test_get_numbers_and_filenames(self):
@@ -41,14 +44,18 @@ class TestFunctions(unittest.TestCase):
                 1: "access.log.1.gz",
                 0: "access.log",
             },
-            lib.get_numbers_and_filenames(filenames),
+            self._class._get_numbers_and_filenames(filenames),
         )
 
     def test_get_filename_possible_number(self):
-        self.assertEqual("0", lib.get_filename_possible_number("access.log"))
-        self.assertEqual("2", lib.get_filename_possible_number("access.log.2"))
-        self.assertEqual("2", lib.get_filename_possible_number("access.log.2.gz"))
+        self.assertEqual("0", self._class._get_filename_possible_number("access.log"))
+        self.assertEqual("2", self._class._get_filename_possible_number("access.log.2"))
+        self.assertEqual(
+            "2", self._class._get_filename_possible_number("access.log.2.gz")
+        )
 
+
+class TestFunctions(unittest.TestCase):
     def test_get_log_for_parsed_log(self):
         line = (
             '8.8.8.8 - abc [28/Nov/2021:00:18:22 +0100] "GET / HTTP/1.1" 200 77 "-"'
