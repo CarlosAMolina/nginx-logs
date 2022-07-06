@@ -149,15 +149,18 @@ class FilenamesFilter:
         return self._get_log_filenames_sort_reverse(filenames)
 
     def _get_log_filenames_sort_reverse(self, filenames: List[str]) -> List[str]:
-        numbers_and_filenames = self._get_numbers_and_filenames(filenames)
-        numbers_and_filenames_ordered: List[Tuple[int, str]] = sorted(
-            numbers_and_filenames.items(), reverse=True
+        filenames_with_logs = self._get_filenames_with_logs(filenames)
+        numbers_and_log_filenames = self._get_numbers_and_filenames(filenames_with_logs)
+        numbers_and_log_filenames_ordered: List[Tuple[int, str]] = sorted(
+            numbers_and_log_filenames.items(), reverse=True
         )
         return [
             number_and_filename[1]
-            for number_and_filename in numbers_and_filenames_ordered
-            if number_and_filename[1].startswith("access.log")
+            for number_and_filename in numbers_and_log_filenames_ordered
         ]
+
+    def _get_filenames_with_logs(self, filenames: List[str]) -> List[str]:
+        return [filename for filename in filenames if filename.startswith("access.log")]
 
     def _get_numbers_and_filenames(self, filenames: List[str]) -> Dict[int, str]:
         result = {}

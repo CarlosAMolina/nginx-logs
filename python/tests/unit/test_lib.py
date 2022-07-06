@@ -10,6 +10,7 @@ class TestFilenamesFilter(unittest.TestCase):
     def test_get_log_filenames_sort_reverse(self):
         filenames = [
             "foo.txt",
+            "error.log.111",
             "access.log",
             "access.log.5.gz",
             "access.log.2",
@@ -29,7 +30,6 @@ class TestFilenamesFilter(unittest.TestCase):
 
     def test_get_numbers_and_filenames(self):
         filenames = [
-            "foo.txt",
             "access.log",
             "access.log.5.gz",
             "access.log.2",
