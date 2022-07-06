@@ -191,7 +191,11 @@ mod mod_filenames {
             if filename.ends_with(".gz") {
                 number_index_end = 1;
             }
-            filename.split('.').nth_back(number_index_end).unwrap().to_string()
+            filename
+                .split('.')
+                .nth_back(number_index_end)
+                .unwrap()
+                .to_string()
         }
     }
 
@@ -206,7 +210,6 @@ mod mod_filenames {
         }
         result
     }
-
 }
 
 fn export_file_to_csv(
@@ -292,7 +295,6 @@ mod tests {
             mod_filenames::get_log_filenames_sort_reverse(&filenames)
         );
     }
-
 
     //https://docs.rs/csv/latest/csv/struct.WriterBuilder.html#example-with-headers
     #[test]
