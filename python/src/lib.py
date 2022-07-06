@@ -151,13 +151,7 @@ class FilenamesFilter:
     def _get_log_filenames_sort_reverse(self, filenames: List[str]) -> List[str]:
         filenames_with_logs = self._get_filenames_with_logs(filenames)
         numbers_and_log_filenames = self._get_numbers_and_filenames(filenames_with_logs)
-        numbers_and_log_filenames_ordered: List[Tuple[int, str]] = sorted(
-            numbers_and_log_filenames.items(), reverse=True
-        )
-        return [
-            number_and_filename[1]
-            for number_and_filename in numbers_and_log_filenames_ordered
-        ]
+        return self._get_filenames_sorted(numbers_and_log_filenames)
 
     def _get_filenames_with_logs(self, filenames: List[str]) -> List[str]:
         return [filename for filename in filenames if filename.startswith("access.log")]
@@ -179,6 +173,15 @@ class FilenamesFilter:
         else:
             number_index = -2 if filename.endswith(".gz") else -1
             return filename.split(".")[number_index]
+
+    def _get_filenames_sorted(self, numbers_and_filenames: Dict[int, str]) -> List[str]:
+        numbers_and_log_filenames_sorted: List[Tuple[int, str]] = sorted(
+            numbers_and_filenames.items(), reverse=True
+        )
+        return [
+            number_and_filename[1]
+            for number_and_filename in numbers_and_log_filenames_sorted
+        ]
 
 
 class FileExport:
