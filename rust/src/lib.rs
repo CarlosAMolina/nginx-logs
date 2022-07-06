@@ -154,38 +154,55 @@ fn get_filenames_to_analyze_in_path(path: &str) -> Result<Vec<String>, Box<dyn E
 }
 
 mod mod_filenames {
+    use std::collections::HashMap;
+
     pub fn get_log_filenames_sort_reverse(filenames: &[&str]) -> Vec<String> {
         let filenames_with_logs = get_filenames_with_logs(filenames);
-        let mut numbers = get_filenames_numbers(&filenames_with_logs);
-        numbers.sort_unstable();
-        numbers.reverse();
-        let mut result = Vec::<String>::new();
-        for number in numbers.iter() {
-            result.push(format!("access.log.{}", number));
-        }
-        if filenames_with_logs.contains(&"access.log") {
-            result.push("access.log".to_string());
-        }
-        result
+        let numbers_and_log_filenames = get_numbers_and_filenames(filenames_with_logs);
+        get_filenames_sorted(numbers_and_log_filenames)
     }
 
-    fn get_filenames_with_logs<'a>(filenames: &'a [&str]) -> Vec<&'a str> {
-        let mut result = Vec::<&str>::new();
+    fn get_filenames_with_logs(filenames: &[&str]) -> Vec<String> {
+        let mut result = Vec::<String>::new();
         for filename in filenames.iter() {
             if filename.starts_with("access.log") {
-                result.push(filename);
+                result.push(filename.to_string());
             }
         }
         result
     }
 
-    fn get_filenames_numbers(filenames: &[&str]) -> Vec<u8> {
-        let mut result = Vec::<u8>::new();
-        for filename in filenames.iter() {
-            let last_part = filename.split('.').last();
-            if let Ok(number) = last_part.unwrap().parse::<u8>() {
-                result.push(number)
+    fn get_numbers_and_filenames(filenames: Vec<String>) -> HashMap<u8, String> {
+        let mut result = HashMap::new();
+        for filename in filenames {
+            let possible_number = get_filename_possible_number(&filename);
+            if let Ok(number) = possible_number.parse::<u8>() {
+                result.insert(number, filename);
             }
+        }
+        result
+    }
+
+    fn get_filename_possible_number(filename: &str) -> String {
+        if filename == "access.log" {
+            "0".to_string()
+        } else {
+            let mut number_index_end = 0;
+            if filename.ends_with(".gz") {
+                number_index_end = 1;
+            }
+            filename.split('.').nth_back(number_index_end).unwrap().to_string()
+        }
+    }
+
+    fn get_filenames_sorted(numbers_and_filenames: HashMap<u8, String>) -> Vec<String> {
+        let mut numbers = Vec::from_iter(numbers_and_filenames.keys());
+        numbers.sort_unstable();
+        numbers.reverse();
+        let mut result = Vec::new();
+        for number in numbers {
+            let filename = numbers_and_filenames.get(number).unwrap();
+            result.push(filename.clone());
         }
         result
     }
@@ -259,17 +276,17 @@ mod tests {
             "foo.txt",
             "error.log.111",
             "access.log",
-            "access.log.5",
+            "access.log.5.gz",
             "access.log.2",
-            "access.log.10",
-            "access.log.1",
+            "access.log.10.gz",
+            "access.log.1.gz",
         ];
         assert_eq!(
             vec![
-                "access.log.10",
-                "access.log.5",
+                "access.log.10.gz",
+                "access.log.5.gz",
                 "access.log.2",
-                "access.log.1",
+                "access.log.1.gz",
                 "access.log",
             ],
             mod_filenames::get_log_filenames_sort_reverse(&filenames)
