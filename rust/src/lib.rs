@@ -7,6 +7,7 @@ use std::path::Path;
 
 use csv::Writer;
 use csv::WriterBuilder;
+use flate2::read::GzDecoder;
 
 pub struct Config {
     file_or_path: String,
@@ -119,6 +120,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     };
     println!("File with not parsed logs: {}", path_error.display());
     if file_or_path_to_check.is_file() {
+        // TODO add export_file_gz_to_csv
         export_file_to_csv(
             &config.file_or_path,
             &mut writer_csv,
@@ -131,7 +133,11 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
                 true => format!("{}{}", config.file_or_path, filename),
                 false => format!("{}/{}", config.file_or_path, filename),
             };
-            export_file_to_csv(&file_str, &mut writer_csv, &mut file_and_display_error)?;
+            if file_str.ends_with(".gz") {
+                export_file_gz_to_csv(&file_str, &mut writer_csv, &mut file_and_display_error)?;
+            } else {
+                export_file_to_csv(&file_str, &mut writer_csv, &mut file_and_display_error)?;
+            }
         }
     }
     Ok(())
@@ -219,6 +225,7 @@ fn export_file_to_csv(
 ) -> Result<(), Box<dyn Error>> {
     println!("Init file: {}", file_to_check);
 
+
     let lines = read_lines(file_to_check).expect("Something went wrong reading the file");
     for line in lines {
         let log_line = line.expect("Something went wrong reading the line");
@@ -236,6 +243,35 @@ fn export_file_to_csv(
     writer_csv.flush()?;
     Ok(())
 }
+
+
+// TODO reformat code duplicated as export_file_to_csv
+fn export_file_gz_to_csv(
+    file_to_check: &str,
+    writer_csv: &mut Writer<File>,
+    file_and_display_error: &mut FileAndDisplay,
+) -> Result<(), Box<dyn Error>> {
+    println!("Init file: {}", file_to_check);
+
+
+    let lines = read_gz_lines(file_to_check).expect("Something went wrong reading the file");
+    for line in lines {
+        let log_line = line.expect("Something went wrong reading the line");
+        let log = m_log::get_log(&log_line);
+        match log {
+            None => {
+                eprintln!("Not parsed: {}", log_line);
+                write_line_to_file(file_and_display_error, log_line)?;
+            }
+            Some(log_csv) => {
+                writer_csv.serialize(log_csv)?;
+            }
+        }
+    }
+    writer_csv.flush()?;
+    Ok(())
+}
+
 
 fn get_new_file(path: &std::path::Path) -> Result<io::BufWriter<std::fs::File>, String> {
     let file = match File::create(&path) {
@@ -266,6 +302,15 @@ where
     let file = File::open(filename)?;
     Ok(io::BufReader::new(file).lines())
 }
+
+fn read_gz_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<flate2::read::GzDecoder<File>>>>
+where
+    P: AsRef<Path>,
+{
+    let file = File::open(filename)?;
+    Ok(io::BufReader::new(GzDecoder::new(file)).lines())
+}
+
 
 #[cfg(test)]
 mod tests {
