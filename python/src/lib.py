@@ -93,7 +93,7 @@ REGEX = re.compile(
     \s"
     (.+)                      # HTTP referer
     "\s"
-    (.+)                      # HTTP user agent
+    (.*)                      # HTTP user agent
     "
 """,
     re.VERBOSE,

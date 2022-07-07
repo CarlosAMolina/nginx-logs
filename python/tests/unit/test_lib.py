@@ -64,6 +64,12 @@ class TestFunctions(unittest.TestCase):
         )
         self.assertIsNotNone(lib.get_log(line))
 
+    def test_get_log_for_parsed_log_with_empty_http_user_agent(self):
+        line = (
+            '8.8.8.8 - abc [28/Nov/2021:00:18:22 +0100] "GET / HTTP/1.1" 200 77 "-" ""'
+        )
+        self.assertIsNotNone(lib.get_log(line))
+
     def test_get_log_for_not_parsed_log(self):
         line = (
             '8.8.8.8 - abc [28/Nov/2021:00:18:22 +0100 "GET / HTTP/1.1" 200 77 "-"'
