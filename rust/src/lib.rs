@@ -120,12 +120,17 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     };
     println!("File with not parsed logs: {}", path_error.display());
     if file_or_path_to_check.is_file() {
-        // TODO add export_file_gz_to_csv
-        export_file_to_csv(
-            &config.file_or_path,
-            &mut writer_csv,
-            &mut file_and_display_error,
-        )?;
+        // TODO move to a function the management of these file types
+        if config.file_or_path.ends_with(".gz") {
+            export_file_gz_to_csv(&config.file_or_path, &mut writer_csv, &mut file_and_display_error)?;
+
+        } else {
+            export_file_to_csv(
+                &config.file_or_path,
+                &mut writer_csv,
+                &mut file_and_display_error,
+            )?;
+        }
     } else if file_or_path_to_check.is_dir() {
         let filenames = get_filenames_to_analyze_in_path(&config.file_or_path)?;
         for filename in filenames {
@@ -133,6 +138,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
                 true => format!("{}{}", config.file_or_path, filename),
                 false => format!("{}/{}", config.file_or_path, filename),
             };
+            // TODO move to a function the management of these file types
             if file_str.ends_with(".gz") {
                 export_file_gz_to_csv(&file_str, &mut writer_csv, &mut file_and_display_error)?;
             } else {
