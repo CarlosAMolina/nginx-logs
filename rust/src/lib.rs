@@ -122,13 +122,13 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     if file_or_path_to_check.is_file() {
         // TODO move to a function the management of these file types
         if config.file_or_path.ends_with(".gz") {
-            export_file_gz_to_csv(
+            export_gz_file_to_csv(
                 &config.file_or_path,
                 &mut writer_csv,
                 &mut file_and_display_error,
             )?;
         } else {
-            export_file_to_csv(
+            export_log_file_to_csv(
                 &config.file_or_path,
                 &mut writer_csv,
                 &mut file_and_display_error,
@@ -143,9 +143,9 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
             };
             // TODO move to a function the management of these file types
             if file_str.ends_with(".gz") {
-                export_file_gz_to_csv(&file_str, &mut writer_csv, &mut file_and_display_error)?;
+                export_gz_file_to_csv(&file_str, &mut writer_csv, &mut file_and_display_error)?;
             } else {
-                export_file_to_csv(&file_str, &mut writer_csv, &mut file_and_display_error)?;
+                export_log_file_to_csv(&file_str, &mut writer_csv, &mut file_and_display_error)?;
             }
         }
     }
@@ -227,7 +227,7 @@ mod mod_filenames {
     }
 }
 
-fn export_file_to_csv(
+fn export_log_file_to_csv(
     file_to_check: &str,
     writer_csv: &mut Writer<File>,
     file_and_display_error: &mut FileAndDisplay,
@@ -252,8 +252,8 @@ fn export_file_to_csv(
     Ok(())
 }
 
-// TODO reformat code duplicated as export_file_to_csv
-fn export_file_gz_to_csv(
+// TODO reformat code duplicated as export_log_file_to_csv
+fn export_gz_file_to_csv(
     file_to_check: &str,
     writer_csv: &mut Writer<File>,
     file_and_display_error: &mut FileAndDisplay,
