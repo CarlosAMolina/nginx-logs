@@ -234,9 +234,9 @@ mod file_export {
         file_and_display_error: &mut FileAndDisplay,
     ) -> Result<(), Box<dyn Error>> {
         if file.ends_with(".gz") {
-            export_gz_file_to_csv(&file, writer_csv, file_and_display_error)?;
+            export_gz_file_to_csv(file, writer_csv, file_and_display_error)?;
         } else {
-            export_log_file_to_csv(&file, writer_csv, file_and_display_error)?;
+            export_log_file_to_csv(file, writer_csv, file_and_display_error)?;
         }
         Ok(())
     }
@@ -268,27 +268,37 @@ mod file_export {
 
     // TODO reformat code duplicated as export_log_file_to_csv
     fn export_gz_file_to_csv(
-        file_to_check: &str,
+        file: &str,
         writer_csv: &mut Writer<File>,
         file_and_display_error: &mut FileAndDisplay,
     ) -> Result<(), Box<dyn Error>> {
-        println!("Init file: {}", file_to_check);
+        export_lines_to_csv(file, read_gz_lines, writer_csv, file_and_display_error)?;
+        Ok(())
+    }
 
-        let lines = read_gz_lines(file_to_check).expect("Something went wrong reading the file");
-        for line in lines {
-            let log_line = line.expect("Something went wrong reading the line");
-            let log = m_log::get_log(&log_line);
-            match log {
-                None => {
-                    eprintln!("Not parsed: {}", log_line);
-                    write_line_to_file(file_and_display_error, log_line)?;
-                }
-                Some(log_csv) => {
-                    writer_csv.serialize(log_csv)?;
-                }
-            }
-        }
-        writer_csv.flush()?;
+    fn export_lines_to_csv<T>(
+        file: &str,
+        reader: fn(Path),
+        writer_csv: &mut Writer<File>,
+        file_and_display_error: &mut FileAndDisplay,
+    ) -> Result<(), Box<dyn Error>> {
+        println!("Init file: {}", file);
+        // TODO uncomment
+        //let lines = reader(file).expect("Something went wrong reading the file");
+        //for line in lines {
+        //    let log_line = line.expect("Something went wrong reading the line");
+        //    let log = m_log::get_log(&log_line);
+        //    match log {
+        //        None => {
+        //            //TODO eprintln!("Not parsed: {}", log_line);
+        //            write_line_to_file(file_and_display_error, log_line)?;
+        //        }
+        //        Some(log_csv) => {
+        //            writer_csv.serialize(log_csv)?;
+        //        }
+        //    }
+        //}
+        //writer_csv.flush()?;
         Ok(())
     }
 
