@@ -5,9 +5,7 @@ use std::io::Write;
 use std::io::{self, BufRead};
 use std::path::Path;
 
-use csv::Writer;
 use csv::WriterBuilder;
-use flate2::read::GzDecoder;
 
 pub struct Config {
     file_or_path: String,
@@ -95,7 +93,7 @@ mod log {
 
 use crate::log as m_log;
 
-struct FileAndDisplay<'a> {
+pub struct FileAndDisplay<'a> {
     display: &'a std::path::Display<'a>,
     file: &'a mut io::BufWriter<std::fs::File>,
 }
@@ -120,20 +118,11 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     };
     println!("File with not parsed logs: {}", path_error.display());
     if file_or_path_to_check.is_file() {
-        // TODO move to a function the management of these file types
-        if config.file_or_path.ends_with(".gz") {
-            export_gz_file_to_csv(
-                &config.file_or_path,
-                &mut writer_csv,
-                &mut file_and_display_error,
-            )?;
-        } else {
-            export_log_file_to_csv(
-                &config.file_or_path,
-                &mut writer_csv,
-                &mut file_and_display_error,
-            )?;
-        }
+        file_export::export_file_to_csv(
+            &config.file_or_path,
+            &mut writer_csv,
+            &mut file_and_display_error,
+        )?;
     } else if file_or_path_to_check.is_dir() {
         let filenames = get_filenames_to_analyze_in_path(&config.file_or_path)?;
         for filename in filenames {
@@ -141,12 +130,11 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
                 true => format!("{}{}", config.file_or_path, filename),
                 false => format!("{}/{}", config.file_or_path, filename),
             };
-            // TODO move to a function the management of these file types
-            if file_str.ends_with(".gz") {
-                export_gz_file_to_csv(&file_str, &mut writer_csv, &mut file_and_display_error)?;
-            } else {
-                export_log_file_to_csv(&file_str, &mut writer_csv, &mut file_and_display_error)?;
-            }
+            file_export::export_file_to_csv(
+                &file_str,
+                &mut writer_csv,
+                &mut file_and_display_error,
+            )?;
         }
     }
     Ok(())
@@ -227,57 +215,6 @@ mod mod_filenames {
     }
 }
 
-fn export_log_file_to_csv(
-    file_to_check: &str,
-    writer_csv: &mut Writer<File>,
-    file_and_display_error: &mut FileAndDisplay,
-) -> Result<(), Box<dyn Error>> {
-    println!("Init file: {}", file_to_check);
-
-    let lines = read_lines(file_to_check).expect("Something went wrong reading the file");
-    for line in lines {
-        let log_line = line.expect("Something went wrong reading the line");
-        let log = m_log::get_log(&log_line);
-        match log {
-            None => {
-                eprintln!("Not parsed: {}", log_line);
-                write_line_to_file(file_and_display_error, log_line)?;
-            }
-            Some(log_csv) => {
-                writer_csv.serialize(log_csv)?;
-            }
-        }
-    }
-    writer_csv.flush()?;
-    Ok(())
-}
-
-// TODO reformat code duplicated as export_log_file_to_csv
-fn export_gz_file_to_csv(
-    file_to_check: &str,
-    writer_csv: &mut Writer<File>,
-    file_and_display_error: &mut FileAndDisplay,
-) -> Result<(), Box<dyn Error>> {
-    println!("Init file: {}", file_to_check);
-
-    let lines = read_gz_lines(file_to_check).expect("Something went wrong reading the file");
-    for line in lines {
-        let log_line = line.expect("Something went wrong reading the line");
-        let log = m_log::get_log(&log_line);
-        match log {
-            None => {
-                eprintln!("Not parsed: {}", log_line);
-                write_line_to_file(file_and_display_error, log_line)?;
-            }
-            Some(log_csv) => {
-                writer_csv.serialize(log_csv)?;
-            }
-        }
-    }
-    writer_csv.flush()?;
-    Ok(())
-}
-
 fn get_new_file(path: &std::path::Path) -> Result<io::BufWriter<std::fs::File>, String> {
     let file = match File::create(&path) {
         Err(why) => return Err(format!("couldn't create {}: {}", path.display(), why)),
@@ -286,36 +223,111 @@ fn get_new_file(path: &std::path::Path) -> Result<io::BufWriter<std::fs::File>, 
     Ok(io::BufWriter::new(file))
 }
 
-fn write_line_to_file(file_and_display: &mut FileAndDisplay, line: String) -> Result<(), String> {
-    if let Err(e) = file_and_display.file.write_all(line.as_bytes()) {
-        return Err(format!(
-            "couldn't write to {}: {}",
-            file_and_display.display, e
-        ));
-    }
-    if let Err(e) = file_and_display.file.write_all(b"\n") {
-        return Err(e.to_string());
-    }
-    Ok(())
-}
+mod file_export {
+    use super::*;
+    use std::path::Path;
 
-// https://doc.rust-lang.org/rust-by-example/std_misc/file/read_lines.html
-fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
-where
-    P: AsRef<Path>,
-{
-    let file = File::open(filename)?;
-    Ok(io::BufReader::new(file).lines())
-}
+    use csv::Writer;
+    use flate2::read::GzDecoder;
 
-fn read_gz_lines<P>(
-    filename: P,
-) -> io::Result<io::Lines<io::BufReader<flate2::read::GzDecoder<File>>>>
-where
-    P: AsRef<Path>,
-{
-    let file = File::open(filename)?;
-    Ok(io::BufReader::new(GzDecoder::new(file)).lines())
+    pub fn export_file_to_csv(
+        file: &str,
+        writer_csv: &mut Writer<File>,
+        file_and_display_error: &mut FileAndDisplay,
+    ) -> Result<(), Box<dyn Error>> {
+        if file.ends_with(".gz") {
+            export_gz_file_to_csv(&file, writer_csv, file_and_display_error)?;
+        } else {
+            export_log_file_to_csv(&file, writer_csv, file_and_display_error)?;
+        }
+        Ok(())
+    }
+
+    fn export_log_file_to_csv(
+        file_to_check: &str,
+        writer_csv: &mut Writer<File>,
+        file_and_display_error: &mut FileAndDisplay,
+    ) -> Result<(), Box<dyn Error>> {
+        println!("Init file: {}", file_to_check);
+
+        let lines = read_lines(file_to_check).expect("Something went wrong reading the file");
+        for line in lines {
+            let log_line = line.expect("Something went wrong reading the line");
+            let log = m_log::get_log(&log_line);
+            match log {
+                None => {
+                    eprintln!("Not parsed: {}", log_line);
+                    write_line_to_file(file_and_display_error, log_line)?;
+                }
+                Some(log_csv) => {
+                    writer_csv.serialize(log_csv)?;
+                }
+            }
+        }
+        writer_csv.flush()?;
+        Ok(())
+    }
+
+    // TODO reformat code duplicated as export_log_file_to_csv
+    fn export_gz_file_to_csv(
+        file_to_check: &str,
+        writer_csv: &mut Writer<File>,
+        file_and_display_error: &mut FileAndDisplay,
+    ) -> Result<(), Box<dyn Error>> {
+        println!("Init file: {}", file_to_check);
+
+        let lines = read_gz_lines(file_to_check).expect("Something went wrong reading the file");
+        for line in lines {
+            let log_line = line.expect("Something went wrong reading the line");
+            let log = m_log::get_log(&log_line);
+            match log {
+                None => {
+                    eprintln!("Not parsed: {}", log_line);
+                    write_line_to_file(file_and_display_error, log_line)?;
+                }
+                Some(log_csv) => {
+                    writer_csv.serialize(log_csv)?;
+                }
+            }
+        }
+        writer_csv.flush()?;
+        Ok(())
+    }
+
+    fn write_line_to_file(
+        file_and_display: &mut FileAndDisplay,
+        line: String,
+    ) -> Result<(), String> {
+        if let Err(e) = file_and_display.file.write_all(line.as_bytes()) {
+            return Err(format!(
+                "couldn't write to {}: {}",
+                file_and_display.display, e
+            ));
+        }
+        if let Err(e) = file_and_display.file.write_all(b"\n") {
+            return Err(e.to_string());
+        }
+        Ok(())
+    }
+
+    // https://doc.rust-lang.org/rust-by-example/std_misc/file/read_lines.html
+    fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
+    where
+        P: AsRef<Path>,
+    {
+        let file = File::open(filename)?;
+        Ok(io::BufReader::new(file).lines())
+    }
+
+    fn read_gz_lines<P>(
+        filename: P,
+    ) -> io::Result<io::Lines<io::BufReader<flate2::read::GzDecoder<File>>>>
+    where
+        P: AsRef<Path>,
+    {
+        let file = File::open(filename)?;
+        Ok(io::BufReader::new(GzDecoder::new(file)).lines())
+    }
 }
 
 #[cfg(test)]
