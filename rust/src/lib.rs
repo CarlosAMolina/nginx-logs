@@ -122,8 +122,11 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     if file_or_path_to_check.is_file() {
         // TODO move to a function the management of these file types
         if config.file_or_path.ends_with(".gz") {
-            export_file_gz_to_csv(&config.file_or_path, &mut writer_csv, &mut file_and_display_error)?;
-
+            export_file_gz_to_csv(
+                &config.file_or_path,
+                &mut writer_csv,
+                &mut file_and_display_error,
+            )?;
         } else {
             export_file_to_csv(
                 &config.file_or_path,
@@ -231,7 +234,6 @@ fn export_file_to_csv(
 ) -> Result<(), Box<dyn Error>> {
     println!("Init file: {}", file_to_check);
 
-
     let lines = read_lines(file_to_check).expect("Something went wrong reading the file");
     for line in lines {
         let log_line = line.expect("Something went wrong reading the line");
@@ -250,7 +252,6 @@ fn export_file_to_csv(
     Ok(())
 }
 
-
 // TODO reformat code duplicated as export_file_to_csv
 fn export_file_gz_to_csv(
     file_to_check: &str,
@@ -258,7 +259,6 @@ fn export_file_gz_to_csv(
     file_and_display_error: &mut FileAndDisplay,
 ) -> Result<(), Box<dyn Error>> {
     println!("Init file: {}", file_to_check);
-
 
     let lines = read_gz_lines(file_to_check).expect("Something went wrong reading the file");
     for line in lines {
@@ -277,7 +277,6 @@ fn export_file_gz_to_csv(
     writer_csv.flush()?;
     Ok(())
 }
-
 
 fn get_new_file(path: &std::path::Path) -> Result<io::BufWriter<std::fs::File>, String> {
     let file = match File::create(&path) {
@@ -309,14 +308,15 @@ where
     Ok(io::BufReader::new(file).lines())
 }
 
-fn read_gz_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<flate2::read::GzDecoder<File>>>>
+fn read_gz_lines<P>(
+    filename: P,
+) -> io::Result<io::Lines<io::BufReader<flate2::read::GzDecoder<File>>>>
 where
     P: AsRef<Path>,
 {
     let file = File::open(filename)?;
     Ok(io::BufReader::new(GzDecoder::new(file)).lines())
 }
-
 
 #[cfg(test)]
 mod tests {
