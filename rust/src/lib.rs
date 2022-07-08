@@ -25,7 +25,49 @@ impl Config {
     }
 }
 
-mod log {
+pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
+    let file_or_path_to_check = &Path::new(&config.file_or_path);
+    let path_to_check = match file_or_path_to_check.is_file() {
+        true => file_or_path_to_check.parent().unwrap(),
+        false => file_or_path_to_check,
+    };
+    let path_csv = path_to_check.join("result.csv");
+    //https://docs.rs/csv/latest/csv/tutorial/index.html#writing-csv
+    let mut writer_csv = get_csv_writer_builder().from_path(&path_csv)?;
+    println!("File with logs as csv: {}", path_csv.display());
+    let path_error = path_to_check.join("error.txt");
+    let display_error = path_error.display();
+    // https://doc.rust-lang.org/rust-by-example/std_misc/file/create.html
+    let mut file_error = get_new_file(&path_error)?;
+    let mut file_and_display_error = FileAndDisplay {
+        display: &display_error,
+        file: &mut file_error,
+    };
+    println!("File with not parsed logs: {}", path_error.display());
+    if file_or_path_to_check.is_file() {
+        file_export::export_file_to_csv(
+            &config.file_or_path,
+            &mut writer_csv,
+            &mut file_and_display_error,
+        )?;
+    } else if file_or_path_to_check.is_dir() {
+        let filenames = get_filenames_to_analyze_in_path(&config.file_or_path)?;
+        for filename in filenames {
+            let file_str = match config.file_or_path.ends_with('/') {
+                true => format!("{}{}", config.file_or_path, filename),
+                false => format!("{}/{}", config.file_or_path, filename),
+            };
+            file_export::export_file_to_csv(
+                &file_str,
+                &mut writer_csv,
+                &mut file_and_display_error,
+            )?;
+        }
+    }
+    Ok(())
+}
+
+mod m_log {
     use std::fmt;
 
     use serde_derive::Serialize;
@@ -91,53 +133,9 @@ mod log {
     }
 }
 
-use crate::log as m_log;
-
 pub struct FileAndDisplay<'a> {
     display: &'a std::path::Display<'a>,
     file: &'a mut io::BufWriter<std::fs::File>,
-}
-
-pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    let file_or_path_to_check = &Path::new(&config.file_or_path);
-    let path_to_check = match file_or_path_to_check.is_file() {
-        true => file_or_path_to_check.parent().unwrap(),
-        false => file_or_path_to_check,
-    };
-    let path_csv = path_to_check.join("result.csv");
-    //https://docs.rs/csv/latest/csv/tutorial/index.html#writing-csv
-    let mut writer_csv = get_csv_writer_builder().from_path(&path_csv)?;
-    println!("File with logs as csv: {}", path_csv.display());
-    let path_error = path_to_check.join("error.txt");
-    let display_error = path_error.display();
-    // https://doc.rust-lang.org/rust-by-example/std_misc/file/create.html
-    let mut file_error = get_new_file(&path_error)?;
-    let mut file_and_display_error = FileAndDisplay {
-        display: &display_error,
-        file: &mut file_error,
-    };
-    println!("File with not parsed logs: {}", path_error.display());
-    if file_or_path_to_check.is_file() {
-        file_export::export_file_to_csv(
-            &config.file_or_path,
-            &mut writer_csv,
-            &mut file_and_display_error,
-        )?;
-    } else if file_or_path_to_check.is_dir() {
-        let filenames = get_filenames_to_analyze_in_path(&config.file_or_path)?;
-        for filename in filenames {
-            let file_str = match config.file_or_path.ends_with('/') {
-                true => format!("{}{}", config.file_or_path, filename),
-                false => format!("{}/{}", config.file_or_path, filename),
-            };
-            file_export::export_file_to_csv(
-                &file_str,
-                &mut writer_csv,
-                &mut file_and_display_error,
-            )?;
-        }
-    }
-    Ok(())
 }
 
 fn get_csv_writer_builder() -> WriterBuilder {
@@ -333,7 +331,7 @@ mod file_export {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::log::Log;
+    use crate::m_log::Log;
     use crate::mod_filenames;
 
     #[test]
@@ -393,7 +391,7 @@ mod tests {
                 http_referer: "-",
                 http_user_agent: "foo bar 1"}
                 ),
-            log::get_log("8.8.8.8 - - [28/Oct/2021:00:18:22 +0100] \"GET / HTTP/1.1\" 200 77 \"-\" \"foo bar 1\"")
+            m_log::get_log("8.8.8.8 - - [28/Oct/2021:00:18:22 +0100] \"GET / HTTP/1.1\" 200 77 \"-\" \"foo bar 1\"")
         );
     }
 
@@ -401,7 +399,7 @@ mod tests {
     fn test_get_log_for_not_parsed_log() {
         assert_eq!(
             None,
-            log::get_log("8.8.8.8 - - [28/Oct/2021:00:18:22 +0100 \"GET / HTTP/1.1\" 200 77 \"-\" \"foo bar 1\"")
+            m_log::get_log("8.8.8.8 - - [28/Oct/2021:00:18:22 +0100 \"GET / HTTP/1.1\" 200 77 \"-\" \"foo bar 1\"")
         );
     }
 }
