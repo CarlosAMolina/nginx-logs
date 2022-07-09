@@ -255,10 +255,6 @@ mod file_export {
         Ok(())
     }
 
-    fn get_log_file_lines(file: &str) -> io::Lines<io::BufReader<fs::File>> {
-        read_lines(file).expect("Something went wrong reading the file")
-    }
-
     // TODO reformat code duplicated as export_log_file_to_csv
     fn export_gz_file_to_csv(
         file: &str,
@@ -274,8 +270,23 @@ mod file_export {
         Ok(())
     }
 
+    fn get_log_file_lines(file: &str) -> io::Lines<io::BufReader<fs::File>> {
+        get_file_lines(file, read_lines)
+    }
+
     fn get_gz_file_lines(file: &str) -> io::Lines<io::BufReader<flate2::read::GzDecoder<File>>> {
-        read_gz_lines(file).expect("Something went wrong reading the file")
+        get_file_lines(file, read_gz_lines)
+    }
+
+    fn get_file_lines<P, R>(
+        file: P,
+        lines_reader: fn(P) -> io::Result<io::Lines<io::BufReader<R>>>,
+    ) -> io::Lines<io::BufReader<R>>
+    where
+        P: AsRef<Path>,
+        R: io::Read,
+    {
+        lines_reader(file).expect("Something went wrong reading the file")
     }
 
     fn export_line_to_file(
