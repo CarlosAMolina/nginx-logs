@@ -242,17 +242,21 @@ mod file_export {
     }
 
     fn export_log_file_to_csv(
-        file_to_check: &str,
+        file: &str,
         writer_csv: &mut Writer<File>,
         file_and_display_error: &mut FileAndDisplay,
     ) -> Result<(), Box<dyn Error>> {
-        println!("Init file: {}", file_to_check);
-        let lines = read_lines(file_to_check).expect("Something went wrong reading the file");
+        println!("Init file: {}", file);
+        let lines = get_log_file_lines(file);
         for line in lines {
             export_line_to_file(line, writer_csv, file_and_display_error)?;
         }
         writer_csv.flush()?;
         Ok(())
+    }
+
+    fn get_log_file_lines(file: &str) -> io::Lines<io::BufReader<fs::File>> {
+        read_lines(file).expect("Something went wrong reading the file")
     }
 
     // TODO reformat code duplicated as export_log_file_to_csv
@@ -262,12 +266,16 @@ mod file_export {
         file_and_display_error: &mut FileAndDisplay,
     ) -> Result<(), Box<dyn Error>> {
         println!("Init file: {}", file);
-        let lines = read_gz_lines(file).expect("Something went wrong reading the file");
+        let lines = get_gz_file_lines(file);
         for line in lines {
             export_line_to_file(line, writer_csv, file_and_display_error)?;
         }
         writer_csv.flush()?;
         Ok(())
+    }
+
+    fn get_gz_file_lines(file: &str) -> io::Lines<io::BufReader<flate2::read::GzDecoder<File>>> {
+        read_gz_lines(file).expect("Something went wrong reading the file")
     }
 
     fn export_line_to_file(
