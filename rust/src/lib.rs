@@ -247,7 +247,7 @@ mod file_export {
         file_and_display_error: &mut FileAndDisplay,
     ) -> Result<(), Box<dyn Error>> {
         println!("Init file: {}", file);
-        let lines = get_log_file_lines(file);
+        let lines = get_file_lines(file, read_lines);
         for line in lines {
             export_line_to_file(line, writer_csv, file_and_display_error)?;
         }
@@ -262,20 +262,12 @@ mod file_export {
         file_and_display_error: &mut FileAndDisplay,
     ) -> Result<(), Box<dyn Error>> {
         println!("Init file: {}", file);
-        let lines = get_gz_file_lines(file);
+        let lines = get_file_lines(file, read_gz_lines);
         for line in lines {
             export_line_to_file(line, writer_csv, file_and_display_error)?;
         }
         writer_csv.flush()?;
         Ok(())
-    }
-
-    fn get_log_file_lines(file: &str) -> io::Lines<io::BufReader<fs::File>> {
-        get_file_lines(file, read_lines)
-    }
-
-    fn get_gz_file_lines(file: &str) -> io::Lines<io::BufReader<flate2::read::GzDecoder<File>>> {
-        get_file_lines(file, read_gz_lines)
     }
 
     fn get_file_lines<P, R>(
