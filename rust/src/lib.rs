@@ -249,8 +249,7 @@ mod file_export {
         println!("Init file: {}", file_to_check);
         let lines = read_lines(file_to_check).expect("Something went wrong reading the file");
         for line in lines {
-            let log_line = get_line_result(line);
-            export_line_to_file(&log_line, writer_csv, file_and_display_error)?;
+            export_line_to_file(line, writer_csv, file_and_display_error)?;
         }
         writer_csv.flush()?;
         Ok(())
@@ -265,23 +264,19 @@ mod file_export {
         println!("Init file: {}", file);
         let lines = read_gz_lines(file).expect("Something went wrong reading the file");
         for line in lines {
-            let log_line = get_line_result(line);
-            export_line_to_file(&log_line, writer_csv, file_and_display_error)?;
+            export_line_to_file(line, writer_csv, file_and_display_error)?;
         }
         writer_csv.flush()?;
         Ok(())
     }
 
-    fn get_line_result(line: Result<String, io::Error>) -> String {
-        line.expect("Something went wrong reading the line")
-    }
-
     fn export_line_to_file(
-        log_line: &str,
+        line: Result<String, io::Error>,
         writer_csv: &mut Writer<File>,
         file_and_display_error: &mut FileAndDisplay,
     ) -> Result<(), Box<dyn Error>> {
-        let log = m_log::get_log(log_line);
+        let log_line = line.expect("Something went wrong reading the line");
+        let log = m_log::get_log(&log_line);
         match log {
             None => {
                 eprintln!("Not parsed: {}", log_line);
