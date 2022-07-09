@@ -13,7 +13,7 @@ pub struct Config {
 
 impl Config {
     pub fn new(mut args: env::Args) -> Result<Config, &'static str> {
-        println!("Arguments: {:?}", args);
+        //println!("Arguments: {:?}", args);
         args.next();
         let file_or_path = match args.next() {
             Some(arg) => arg,
@@ -249,7 +249,7 @@ mod file_export {
         println!("Init file: {}", file_to_check);
         let lines = read_lines(file_to_check).expect("Something went wrong reading the file");
         for line in lines {
-            let log_line = line.expect("Something went wrong reading the line");
+            let log_line = get_line_result(line);
             export_line_to_file(&log_line, writer_csv, file_and_display_error)?;
         }
         writer_csv.flush()?;
@@ -265,11 +265,15 @@ mod file_export {
         println!("Init file: {}", file);
         let lines = read_gz_lines(file).expect("Something went wrong reading the file");
         for line in lines {
-            let log_line = line.expect("Something went wrong reading the line");
+            let log_line = get_line_result(line);
             export_line_to_file(&log_line, writer_csv, file_and_display_error)?;
         }
         writer_csv.flush()?;
         Ok(())
+    }
+
+    fn get_line_result(line: Result<String, io::Error>) -> String {
+        line.expect("Something went wrong reading the line")
     }
 
     fn export_line_to_file(
