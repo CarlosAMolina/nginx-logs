@@ -228,11 +228,14 @@ mod file_export {
     use csv::Writer;
     use flate2::read::GzDecoder;
 
-    pub fn export_file_to_csv(
+    pub fn export_file_to_csv<P>(
         file: &str,
         writer_csv: &mut Writer<File>,
         file_and_display_error: &mut FileAndDisplay,
-    ) -> Result<(), Box<dyn Error>> {
+    ) -> Result<(), Box<dyn Error>>
+    where
+        P: AsRef<Path>,
+    {
         if file.ends_with(".gz") {
             export_gz_file_to_csv(file, writer_csv, file_and_display_error)?;
         } else {
@@ -256,13 +259,29 @@ mod file_export {
     }
 
     // TODO reformat code duplicated as export_log_file_to_csv
-    fn export_gz_file_to_csv(
+    fn export_gz_file_to_csv<P>(
         file: &str,
         writer_csv: &mut Writer<File>,
         file_and_display_error: &mut FileAndDisplay,
-    ) -> Result<(), Box<dyn Error>> {
+    ) -> Result<(), Box<dyn Error>>
+    where
+        P: AsRef<Path>,
+    {
+        export_file_to_csv_parent(file, read_gz_lines, writer_csv, file_and_display_error)
+    }
+
+    fn export_file_to_csv_parent<P, R>(
+        file: &str,
+        lines_reader: fn(&str) -> io::Result<io::Lines<io::BufReader<R>>>,
+        writer_csv: &mut Writer<File>,
+        file_and_display_error: &mut FileAndDisplay,
+    ) -> Result<(), Box<dyn Error>>
+    where
+        P: AsRef<Path>,
+        R: io::Read,
+    {
         println!("Init file: {}", file);
-        let lines = get_file_lines(file, read_gz_lines);
+        let lines = get_file_lines(file, lines_reader);
         for line in lines {
             export_line_to_file(line, writer_csv, file_and_display_error)?;
         }
