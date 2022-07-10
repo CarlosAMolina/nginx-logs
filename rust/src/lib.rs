@@ -51,7 +51,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
             &mut file_and_display_error,
         )?;
     } else if file_or_path_to_check.is_dir() {
-        let filenames = get_filenames_to_analyze_in_path(&config.file_or_path)?;
+        let filenames = mod_filenames::get_filenames_to_analyze_in_path(&config.file_or_path)?;
         for filename in filenames {
             let file_str = match config.file_or_path.ends_with('/') {
                 true => format!("{}{}", config.file_or_path, filename),
@@ -142,22 +142,24 @@ fn get_csv_writer_builder() -> WriterBuilder {
     WriterBuilder::new()
 }
 
-fn get_filenames_to_analyze_in_path(path: &str) -> Result<Vec<String>, Box<dyn Error>> {
-    //https://doc.rust-lang.org/std/fs/fn.read_dir.html
-    let entries = fs::read_dir(path)?
-        .map(|res| res.map(|e| e.path()))
-        .collect::<Result<Vec<_>, io::Error>>()?;
-    let filenames = entries
-        .iter()
-        .map(|e| e.file_name().unwrap().to_str().unwrap())
-        .collect::<Vec<&str>>();
-    Ok(mod_filenames::get_log_filenames_sort_reverse(&filenames))
-}
-
 mod mod_filenames {
+    use super::*;
+
     use std::collections::HashMap;
 
-    pub fn get_log_filenames_sort_reverse(filenames: &[&str]) -> Vec<String> {
+    pub fn get_filenames_to_analyze_in_path(path: &str) -> Result<Vec<String>, Box<dyn Error>> {
+        //https://doc.rust-lang.org/std/fs/fn.read_dir.html
+        let entries = fs::read_dir(path)?
+            .map(|res| res.map(|e| e.path()))
+            .collect::<Result<Vec<_>, io::Error>>()?;
+        let filenames = entries
+            .iter()
+            .map(|e| e.file_name().unwrap().to_str().unwrap())
+            .collect::<Vec<&str>>();
+        Ok(get_log_filenames_sort_reverse(&filenames))
+    }
+
+    fn get_log_filenames_sort_reverse(filenames: &[&str]) -> Vec<String> {
         let filenames_with_logs = get_filenames_with_logs(filenames);
         let numbers_and_log_filenames = get_numbers_and_filenames(filenames_with_logs);
         get_filenames_sorted(numbers_and_log_filenames)
