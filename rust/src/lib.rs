@@ -228,35 +228,31 @@ mod file_export {
     use flate2::read::GzDecoder;
 
     pub fn export_file_to_csv(
-        filename: &str,
+        file: &str,
         writer_csv: &mut Writer<File>,
         file_and_display_error: &mut FileAndDisplay,
     ) -> Result<(), Box<dyn Error>> {
-        println!("Init file: {}", filename);
-        let file = File::open(filename)?;
-        if filename.ends_with(".gz") {
-            let lines = get_file_lines(file, read_gz_lines);
-            for line in lines {
-                export_line_to_file(line, writer_csv, file_and_display_error)?;
-            }
+        println!("Init file: {}", file);
+        if file.ends_with(".gz") {
+            let lines = get_file_lines(file, read_gz_lines)?;
+            export_lines_to_file(lines, writer_csv, file_and_display_error)?;
         } else {
-            let lines = get_file_lines(file, read_log_lines);
-            for line in lines {
-                export_line_to_file(line, writer_csv, file_and_display_error)?;
-            }
+            let lines = get_file_lines(file, read_log_lines)?;
+            export_lines_to_file(lines, writer_csv, file_and_display_error)?;
         };
         writer_csv.flush()?;
         Ok(())
     }
 
     fn get_file_lines<R>(
-        file: File,
+        file: &str,
         lines_reader: fn(File) -> io::Result<io::Lines<io::BufReader<R>>>,
-    ) -> io::Lines<io::BufReader<R>>
+    ) -> Result<io::Lines<io::BufReader<R>>, Box<dyn Error>>
     where
         R: io::Read,
     {
-        lines_reader(file).expect("Something went wrong reading the file")
+        let file = File::open(file)?;
+        Ok(lines_reader(file).expect("Something went wrong reading the file"))
     }
 
     // https://doc.rust-lang.org/rust-by-example/std_misc/file/read_lines.html
@@ -264,8 +260,24 @@ mod file_export {
         Ok(io::BufReader::new(file).lines())
     }
 
-    fn read_gz_lines(file: File) -> io::Result<io::Lines<io::BufReader<flate2::read::GzDecoder<File>>>> {
+    fn read_gz_lines(
+        file: File,
+    ) -> io::Result<io::Lines<io::BufReader<flate2::read::GzDecoder<File>>>> {
         Ok(io::BufReader::new(GzDecoder::new(file)).lines())
+    }
+
+    fn export_lines_to_file<R>(
+        lines: io::Lines<io::BufReader<R>>,
+        writer_csv: &mut Writer<File>,
+        file_and_display_error: &mut FileAndDisplay,
+    ) -> Result<(), Box<dyn Error>>
+    where
+        R: io::Read,
+    {
+        for line in lines {
+            export_line_to_file(line, writer_csv, file_and_display_error)?;
+        }
+        Ok(())
     }
 
     fn export_line_to_file(
@@ -302,7 +314,6 @@ mod file_export {
         }
         Ok(())
     }
-
 }
 
 #[cfg(test)]
