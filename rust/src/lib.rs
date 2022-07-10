@@ -223,81 +223,49 @@ fn get_new_file(path: &std::path::Path) -> Result<io::BufWriter<std::fs::File>, 
 
 mod file_export {
     use super::*;
-    use std::path::Path;
 
     use csv::Writer;
     use flate2::read::GzDecoder;
 
-    pub fn export_file_to_csv<P>(
-        file: &str,
-        writer_csv: &mut Writer<File>,
-        file_and_display_error: &mut FileAndDisplay,
-    ) -> Result<(), Box<dyn Error>>
-    where
-        P: AsRef<Path>,
-    {
-        if file.ends_with(".gz") {
-            export_gz_file_to_csv(file, writer_csv, file_and_display_error)?;
-        } else {
-            export_log_file_to_csv(file, writer_csv, file_and_display_error)?;
-        }
-        Ok(())
-    }
-
-    fn export_log_file_to_csv(
-        file: &str,
+    pub fn export_file_to_csv(
+        filename: &str,
         writer_csv: &mut Writer<File>,
         file_and_display_error: &mut FileAndDisplay,
     ) -> Result<(), Box<dyn Error>> {
-        println!("Init file: {}", file);
-        let lines = get_file_lines(file, read_lines);
-        for line in lines {
-            export_line_to_file(line, writer_csv, file_and_display_error)?;
-        }
+        println!("Init file: {}", filename);
+        let file = File::open(filename)?;
+        if filename.ends_with(".gz") {
+            let lines = get_file_lines(file, read_gz_lines);
+            for line in lines {
+                export_line_to_file(line, writer_csv, file_and_display_error)?;
+            }
+        } else {
+            let lines = get_file_lines(file, read_log_lines);
+            for line in lines {
+                export_line_to_file(line, writer_csv, file_and_display_error)?;
+            }
+        };
         writer_csv.flush()?;
         Ok(())
     }
 
-    // TODO reformat code duplicated as export_log_file_to_csv
-    fn export_gz_file_to_csv<P>(
-        file: &str,
-        writer_csv: &mut Writer<File>,
-        file_and_display_error: &mut FileAndDisplay,
-    ) -> Result<(), Box<dyn Error>>
-    where
-        P: AsRef<Path>,
-    {
-        export_file_to_csv_parent(file, read_gz_lines, writer_csv, file_and_display_error)
-    }
-
-    fn export_file_to_csv_parent<P, R>(
-        file: &str,
-        lines_reader: fn(&str) -> io::Result<io::Lines<io::BufReader<R>>>,
-        writer_csv: &mut Writer<File>,
-        file_and_display_error: &mut FileAndDisplay,
-    ) -> Result<(), Box<dyn Error>>
-    where
-        P: AsRef<Path>,
-        R: io::Read,
-    {
-        println!("Init file: {}", file);
-        let lines = get_file_lines(file, lines_reader);
-        for line in lines {
-            export_line_to_file(line, writer_csv, file_and_display_error)?;
-        }
-        writer_csv.flush()?;
-        Ok(())
-    }
-
-    fn get_file_lines<P, R>(
-        file: P,
-        lines_reader: fn(P) -> io::Result<io::Lines<io::BufReader<R>>>,
+    fn get_file_lines<R>(
+        file: File,
+        lines_reader: fn(File) -> io::Result<io::Lines<io::BufReader<R>>>,
     ) -> io::Lines<io::BufReader<R>>
     where
-        P: AsRef<Path>,
         R: io::Read,
     {
         lines_reader(file).expect("Something went wrong reading the file")
+    }
+
+    // https://doc.rust-lang.org/rust-by-example/std_misc/file/read_lines.html
+    fn read_log_lines(file: File) -> io::Result<io::Lines<io::BufReader<File>>> {
+        Ok(io::BufReader::new(file).lines())
+    }
+
+    fn read_gz_lines(file: File) -> io::Result<io::Lines<io::BufReader<flate2::read::GzDecoder<File>>>> {
+        Ok(io::BufReader::new(GzDecoder::new(file)).lines())
     }
 
     fn export_line_to_file(
@@ -335,24 +303,6 @@ mod file_export {
         Ok(())
     }
 
-    // https://doc.rust-lang.org/rust-by-example/std_misc/file/read_lines.html
-    fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
-    where
-        P: AsRef<Path>,
-    {
-        let file = File::open(filename)?;
-        Ok(io::BufReader::new(file).lines())
-    }
-
-    fn read_gz_lines<P>(
-        filename: P,
-    ) -> io::Result<io::Lines<io::BufReader<flate2::read::GzDecoder<File>>>>
-    where
-        P: AsRef<Path>,
-    {
-        let file = File::open(filename)?;
-        Ok(io::BufReader::new(GzDecoder::new(file)).lines())
-    }
 }
 
 #[cfg(test)]
