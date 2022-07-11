@@ -5,7 +5,6 @@ use std::io::Write;
 use std::io::{self, BufRead};
 use std::path::Path;
 
-
 pub struct Config {
     file_or_path: String,
 }
@@ -31,11 +30,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let mut file_error = get_new_file(&path_error)?;
     println!("File with not parsed logs: {:?}", path_error);
     if file_or_path_to_check.is_file() {
-        file_export::export_file_to_csv(
-            &config.file_or_path,
-            &mut writer_csv,
-            &mut file_error,
-        )?;
+        file_export::export_file_to_csv(&config.file_or_path, &mut writer_csv, &mut file_error)?;
     } else if file_or_path_to_check.is_dir() {
         let filenames = mod_filenames::get_filenames_to_analyze_in_path(&config.file_or_path)?;
         for filename in filenames {
@@ -43,11 +38,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
                 true => format!("{}{}", config.file_or_path, filename),
                 false => format!("{}/{}", config.file_or_path, filename),
             };
-            file_export::export_file_to_csv(
-                &file_str,
-                &mut writer_csv,
-                &mut file_error,
-            )?;
+            file_export::export_file_to_csv(&file_str, &mut writer_csv, &mut file_error)?;
         }
     }
     Ok(())
@@ -119,13 +110,14 @@ mod m_log {
     }
 }
 
-
 mod mod_files {
     use std::error::Error;
 
     use csv::WriterBuilder;
 
-    pub fn get_result_files(file_or_path_to_check: &std::path::Path) -> Result<(csv::Writer<std::fs::File>, std::path::PathBuf), Box<dyn Error>> {
+    pub fn get_result_files(
+        file_or_path_to_check: &std::path::Path,
+    ) -> Result<(csv::Writer<std::fs::File>, std::path::PathBuf), Box<dyn Error>> {
         let (path_csv, path_error) = get_paths_to_work_with(file_or_path_to_check);
         println!("File with logs as csv: {}", path_csv.display());
         //https://docs.rs/csv/latest/csv/tutorial/index.html#writing-csv
@@ -133,7 +125,9 @@ mod mod_files {
         Ok((writer_csv, path_error))
     }
 
-    fn get_paths_to_work_with(file_or_path_to_check: &std::path::Path) -> (std::path::PathBuf, std::path::PathBuf) {
+    fn get_paths_to_work_with(
+        file_or_path_to_check: &std::path::Path,
+    ) -> (std::path::PathBuf, std::path::PathBuf) {
         let path_to_check = match file_or_path_to_check.is_file() {
             true => file_or_path_to_check.parent().unwrap(),
             false => file_or_path_to_check,
@@ -147,14 +141,12 @@ mod mod_files {
     fn get_csv_writer_builder() -> WriterBuilder {
         WriterBuilder::new()
     }
-
 }
 
 mod mod_filenames {
     use super::*;
 
     use std::collections::HashMap;
-
 
     pub fn get_filenames_to_analyze_in_path(path: &str) -> Result<Vec<String>, Box<dyn Error>> {
         //https://doc.rust-lang.org/std/fs/fn.read_dir.html
@@ -314,10 +306,7 @@ mod file_export {
         file_error: &mut io::BufWriter<std::fs::File>,
         line: String,
     ) -> Result<(), String> {
-        if let Err(e) = file_error.write_all(line.as_bytes()) {
-            return Err(e.to_string());
-        }
-        if let Err(e) = file_error.write_all(b"\n") {
+        if let Err(e) = file_error.write_all(format!("{}\n", line).as_bytes()) {
             return Err(e.to_string());
         }
         Ok(())
