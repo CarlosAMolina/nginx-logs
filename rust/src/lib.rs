@@ -25,9 +25,7 @@ impl Config {
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let file_or_path_to_check = &Path::new(&config.file_or_path);
-    let (mut writer_csv, path_error) = mod_files::get_result_files(file_or_path_to_check)?;
-    // https://doc.rust-lang.org/rust-by-example/std_misc/file/create.html
-    let mut file_error = mod_files::get_new_file(&path_error)?;
+    let (mut writer_csv, mut file_error) = mod_files::get_result_files(file_or_path_to_check)?;
     if file_or_path_to_check.is_file() {
         file_export::export_file_to_csv(&config.file_or_path, &mut writer_csv, &mut file_error)?;
     } else if file_or_path_to_check.is_dir() {
@@ -117,13 +115,15 @@ mod mod_files {
 
     pub fn get_result_files(
         file_or_path_to_check: &std::path::Path,
-    ) -> Result<(csv::Writer<std::fs::File>, std::path::PathBuf), Box<dyn Error>> {
+    ) -> Result<(csv::Writer<std::fs::File>, io::BufWriter<std::fs::File>), Box<dyn Error>> {
         let (path_csv, path_error) = get_paths_to_work_with(file_or_path_to_check);
         println!("File with logs as csv: {}", path_csv.display());
         println!("File with not parsed logs: {}", path_error.display());
         //https://docs.rs/csv/latest/csv/tutorial/index.html#writing-csv
         let writer_csv = get_csv_writer_builder().from_path(&path_csv)?;
-        Ok((writer_csv, path_error))
+        // https://doc.rust-lang.org/rust-by-example/std_misc/file/create.html
+        let file_error = mod_files::get_new_file(&path_error)?;
+        Ok((writer_csv, file_error))
     }
 
     fn get_paths_to_work_with(
@@ -143,7 +143,7 @@ mod mod_files {
         WriterBuilder::new()
     }
 
-    pub fn get_new_file(path: &std::path::Path) -> Result<io::BufWriter<std::fs::File>, String> {
+    fn get_new_file(path: &std::path::Path) -> Result<io::BufWriter<std::fs::File>, String> {
         let file = match File::create(&path) {
             Err(why) => return Err(format!("couldn't create {}: {}", path.display(), why)),
             Ok(file) => file,
