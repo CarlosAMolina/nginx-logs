@@ -239,6 +239,43 @@ mod file_export {
     use csv::Writer;
     use flate2::read::GzDecoder;
 
+    enum TypeOr<S, T> {
+        Left(S),
+        Right(T),
+    }
+
+    //) -> Result<io::Lines<Box<dyn io::Read>>, Box<dyn Error>>
+    //) -> Result<io::Lines<io::BufReader<std::fs::File>>, Box<dyn Error>>
+    // https://stackoverflow.com/questions/33390395/can-a-function-return-different-types-depending-on-conditional-statements-in-the
+    // https://users.rust-lang.org/t/return-different-types/51534
+    // TODO continue here
+    pub fn get_file_lines_b(
+        file_str: &str,
+    ) -> TypeOr<io::BufReader<flate2::read::GzDecoder<File>>, io::BufReader<File>> {
+        //) -> impl io::Read {
+        println!("Init file: {}", file_str);
+
+        let file = File::open(file_str).unwrap();
+        //io::BufReader::new(file)
+        //io::BufReader::new(GzDecoder::new(file))
+        //
+        if file_str.ends_with(".gz") {
+            return TypeOr::Left(io::BufReader::new(GzDecoder::new(file)));
+            //
+        }
+        TypeOr::Right(io::BufReader::new(file))
+        //else {
+        //    return io::BufReader::new(GzDecoder::new(file));
+        //};
+        //io::BufReader::new(file)
+
+        //if file.ends_with(".gz") {
+        //    Ok(io::BufReader::new(file).lines())
+        //} else {
+        //    Ok(io::BufReader::new(GzDecoder::new(file)).lines())
+        //};
+    }
+
     pub fn export_file_to_csv(
         file: &str,
         writer_csv: &mut Writer<File>,
@@ -271,7 +308,6 @@ mod file_export {
     fn read_log_lines(file: File) -> io::Result<io::Lines<io::BufReader<File>>> {
         Ok(io::BufReader::new(file).lines())
     }
-
     fn read_gz_lines(
         file: File,
     ) -> io::Result<io::Lines<io::BufReader<flate2::read::GzDecoder<File>>>> {
