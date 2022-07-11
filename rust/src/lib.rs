@@ -24,19 +24,10 @@ impl Config {
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    let file_or_path_to_check = &Path::new(&config.file_or_path);
-    let (mut writer_csv, mut file_error) = mod_files::get_result_files(file_or_path_to_check)?;
-    if file_or_path_to_check.is_file() {
-        file_export::export_file_to_csv(&config.file_or_path, &mut writer_csv, &mut file_error)?;
-    } else if file_or_path_to_check.is_dir() {
-        let filenames = mod_filenames::get_filenames_to_analyze_in_path(&config.file_or_path)?;
-        for filename in filenames {
-            let file_str = match config.file_or_path.ends_with('/') {
-                true => format!("{}{}", config.file_or_path, filename),
-                false => format!("{}/{}", config.file_or_path, filename),
-            };
-            file_export::export_file_to_csv(&file_str, &mut writer_csv, &mut file_error)?;
-        }
+    let (mut writer_csv, mut file_error) = mod_files::get_result_files(&config.file_or_path)?;
+    let filenames = mod_filenames::get_filenames_to_analyze(&config.file_or_path)?;
+    for filename in filenames {
+        file_export::export_file_to_csv(&filename, &mut writer_csv, &mut file_error)?;
     }
     Ok(())
 }
@@ -114,8 +105,9 @@ mod mod_files {
     use csv::WriterBuilder;
 
     pub fn get_result_files(
-        file_or_path_to_check: &std::path::Path,
+        path: &str,
     ) -> Result<(csv::Writer<std::fs::File>, io::BufWriter<std::fs::File>), Box<dyn Error>> {
+        let file_or_path_to_check = Path::new(path);
         let (path_csv, path_error) = get_paths_to_work_with(file_or_path_to_check);
         println!("File with logs as csv: {}", path_csv.display());
         println!("File with not parsed logs: {}", path_error.display());
@@ -150,7 +142,6 @@ mod mod_files {
         };
         Ok(io::BufWriter::new(file))
     }
-
 }
 
 mod mod_filenames {
@@ -158,7 +149,23 @@ mod mod_filenames {
 
     use std::collections::HashMap;
 
-    pub fn get_filenames_to_analyze_in_path(path: &str) -> Result<Vec<String>, Box<dyn Error>> {
+    pub fn get_filenames_to_analyze(
+        file_or_path_to_check: &str,
+    ) -> Result<Vec<String>, Box<dyn Error>> {
+        let file_or_path = Path::new(file_or_path_to_check);
+        if file_or_path.is_file() {
+            Ok(vec![file_or_path_to_check.to_string()])
+        } else {
+            let filenames = get_filenames_to_analyze_in_path(file_or_path_to_check)?;
+            let mut result = Vec::new();
+            for filename in filenames {
+                result.push(file_or_path.join(filename).to_str().unwrap().to_string());
+            }
+            Ok(result)
+        }
+    }
+
+    fn get_filenames_to_analyze_in_path(path: &str) -> Result<Vec<String>, Box<dyn Error>> {
         //https://doc.rust-lang.org/std/fs/fn.read_dir.html
         let entries = fs::read_dir(path)?
             .map(|res| res.map(|e| e.path()))
@@ -225,7 +232,6 @@ mod mod_filenames {
         result
     }
 }
-
 
 mod file_export {
     use super::*;
