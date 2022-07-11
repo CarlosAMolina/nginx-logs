@@ -27,19 +27,14 @@ impl Config {
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let file_or_path_to_check = &Path::new(&config.file_or_path);
     let (mut writer_csv, path_error) = mod_files::get_result_files(file_or_path_to_check)?;
-    let display_error = path_error.display();
     // https://doc.rust-lang.org/rust-by-example/std_misc/file/create.html
     let mut file_error = get_new_file(&path_error)?;
-    let mut file_and_display_error = FileAndDisplay {
-        display: &display_error,
-        file: &mut file_error,
-    };
-    println!("File with not parsed logs: {}", path_error.display());
+    println!("File with not parsed logs: {:?}", path_error);
     if file_or_path_to_check.is_file() {
         file_export::export_file_to_csv(
             &config.file_or_path,
             &mut writer_csv,
-            &mut file_and_display_error,
+            &mut file_error,
         )?;
     } else if file_or_path_to_check.is_dir() {
         let filenames = mod_filenames::get_filenames_to_analyze_in_path(&config.file_or_path)?;
@@ -51,7 +46,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
             file_export::export_file_to_csv(
                 &file_str,
                 &mut writer_csv,
-                &mut file_and_display_error,
+                &mut file_error,
             )?;
         }
     }
@@ -122,11 +117,6 @@ mod m_log {
             None
         }
     }
-}
-
-pub struct FileAndDisplay<'a> {
-    display: &'a std::path::Display<'a>,
-    file: &'a mut io::BufWriter<std::fs::File>,
 }
 
 
@@ -251,15 +241,15 @@ mod file_export {
     pub fn export_file_to_csv(
         file: &str,
         writer_csv: &mut Writer<File>,
-        file_and_display_error: &mut FileAndDisplay,
+        file_error: &mut io::BufWriter<std::fs::File>,
     ) -> Result<(), Box<dyn Error>> {
         println!("Init file: {}", file);
         if file.ends_with(".gz") {
             let lines = get_file_lines(file, read_gz_lines)?;
-            export_lines_to_file(lines, writer_csv, file_and_display_error)?;
+            export_lines_to_file(lines, writer_csv, file_error)?;
         } else {
             let lines = get_file_lines(file, read_log_lines)?;
-            export_lines_to_file(lines, writer_csv, file_and_display_error)?;
+            export_lines_to_file(lines, writer_csv, file_error)?;
         };
         writer_csv.flush()?;
         Ok(())
@@ -290,13 +280,13 @@ mod file_export {
     fn export_lines_to_file<R>(
         lines: io::Lines<io::BufReader<R>>,
         writer_csv: &mut Writer<File>,
-        file_and_display_error: &mut FileAndDisplay,
+        file_error: &mut io::BufWriter<std::fs::File>,
     ) -> Result<(), Box<dyn Error>>
     where
         R: io::Read,
     {
         for line in lines {
-            export_line_to_file(line, writer_csv, file_and_display_error)?;
+            export_line_to_file(line, writer_csv, file_error)?;
         }
         Ok(())
     }
@@ -304,14 +294,14 @@ mod file_export {
     fn export_line_to_file(
         line: Result<String, io::Error>,
         writer_csv: &mut Writer<File>,
-        file_and_display_error: &mut FileAndDisplay,
+        file_error: &mut io::BufWriter<std::fs::File>,
     ) -> Result<(), Box<dyn Error>> {
         let log_line = line.expect("Something went wrong reading the line");
         let log = m_log::get_log(&log_line);
         match log {
             None => {
                 eprintln!("Not parsed: {}", log_line);
-                write_line_to_file(file_and_display_error, log_line.to_string())?;
+                write_line_to_file(file_error, log_line.to_string())?;
             }
             Some(log_csv) => {
                 writer_csv.serialize(log_csv)?;
@@ -321,16 +311,13 @@ mod file_export {
     }
 
     fn write_line_to_file(
-        file_and_display: &mut FileAndDisplay,
+        file_error: &mut io::BufWriter<std::fs::File>,
         line: String,
     ) -> Result<(), String> {
-        if let Err(e) = file_and_display.file.write_all(line.as_bytes()) {
-            return Err(format!(
-                "couldn't write to {}: {}",
-                file_and_display.display, e
-            ));
+        if let Err(e) = file_error.write_all(line.as_bytes()) {
+            return Err(e.to_string());
         }
-        if let Err(e) = file_and_display.file.write_all(b"\n") {
+        if let Err(e) = file_error.write_all(b"\n") {
             return Err(e.to_string());
         }
         Ok(())
