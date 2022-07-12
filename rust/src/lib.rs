@@ -1,8 +1,7 @@
 use std::env;
 use std::error::Error;
 use std::fs::{self, File};
-use std::io::Write;
-use std::io;
+use std::io::{BufWriter, Error as IoError, Write};
 use std::path::Path;
 
 mod create_file;
@@ -73,7 +72,7 @@ mod filter_file {
         //https://doc.rust-lang.org/std/fs/fn.read_dir.html
         let entries = fs::read_dir(path)?
             .map(|res| res.map(|e| e.path()))
-            .collect::<Result<Vec<_>, io::Error>>()?;
+            .collect::<Result<Vec<_>,IoError>>()?;
         let filenames = entries
             .iter()
             .map(|e| e.file_name().unwrap().to_str().unwrap())
@@ -146,7 +145,7 @@ mod write_file {
 
     pub fn write_to_file_error(
         line: String,
-        file_error: &mut io::BufWriter<std::fs::File>,
+        file_error: &mut BufWriter<File>,
     ) -> Result<(), Box<dyn Error>> {
         eprintln!("Not parsed: {}", line);
         write_line_to_file(file_error, line)?;
@@ -154,7 +153,7 @@ mod write_file {
     }
 
     fn write_line_to_file(
-        file_error: &mut io::BufWriter<std::fs::File>,
+        file_error: &mut BufWriter<File>,
         line: String,
     ) -> Result<(), String> {
         if let Err(e) = file_error.write_all(format!("{}\n", line).as_bytes()) {

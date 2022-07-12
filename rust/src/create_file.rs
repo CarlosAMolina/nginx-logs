@@ -1,13 +1,13 @@
 use std::error::Error;
 use std::fs::File;
-use std::io;
-use std::path::Path;
+use std::io::BufWriter;
+use std::path::{Path, PathBuf};
 
 use csv::WriterBuilder;
 
 pub fn get_result_files(
     path: &str,
-) -> Result<(csv::Writer<std::fs::File>, io::BufWriter<std::fs::File>), Box<dyn Error>> {
+) -> Result<(csv::Writer<File>, BufWriter<File>), Box<dyn Error>> {
     let file_or_path_to_check = Path::new(path);
     let (path_csv, path_error) = get_paths_to_work_with(file_or_path_to_check);
     println!("File with logs as csv: {}", path_csv.display());
@@ -18,8 +18,8 @@ pub fn get_result_files(
 }
 
 fn get_paths_to_work_with(
-    file_or_path_to_check: &std::path::Path,
-) -> (std::path::PathBuf, std::path::PathBuf) {
+    file_or_path_to_check: &Path,
+) -> (PathBuf, PathBuf) {
     let path_to_check = match file_or_path_to_check.is_file() {
         true => file_or_path_to_check.parent().unwrap(),
         false => file_or_path_to_check,
@@ -36,12 +36,12 @@ fn get_csv_writer_builder() -> WriterBuilder {
 }
 
 // https://doc.rust-lang.org/rust-by-example/std_misc/file/create.html
-fn get_new_file(path: &std::path::Path) -> Result<io::BufWriter<std::fs::File>, String> {
+fn get_new_file(path: &Path) -> Result<BufWriter<File>, String> {
     let file = match File::create(&path) {
         Err(why) => return Err(format!("couldn't create {}: {}", path.display(), why)),
         Ok(file) => file,
     };
-    Ok(io::BufWriter::new(file))
+    Ok(BufWriter::new(file))
 }
 
 #[cfg(test)]
