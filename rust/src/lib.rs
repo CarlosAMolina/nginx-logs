@@ -25,8 +25,8 @@ impl Config {
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    let (mut writer_csv, mut file_error) = mod_files::get_result_files(&config.file_or_path)?;
-    for filename in mod_filenames::get_filenames_to_analyze(&config.file_or_path)?{
+    let (mut writer_csv, mut file_error) = create_file::get_result_files(&config.file_or_path)?;
+    for filename in filter_file::get_filenames_to_analyze(&config.file_or_path)?{
         //for line in reader.lines() {
         for line in read_file::get_lines_in_file(&filename) {
             let line_str = line.expect("Something went wrong reading the line");
@@ -40,8 +40,8 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
                 }
             }
         }
-        //file_export::export_file_to_csv(&filename, &mut writer_csv, &mut file_error)?;
     }
+    writer_csv.flush()?;
     Ok(())
 }
 
@@ -111,7 +111,7 @@ mod m_log {
     }
 }
 
-mod mod_files {
+mod create_file {
     use super::*;
     use std::error::Error;
 
@@ -127,7 +127,7 @@ mod mod_files {
         //https://docs.rs/csv/latest/csv/tutorial/index.html#writing-csv
         let writer_csv = get_csv_writer_builder().from_path(&path_csv)?;
         // https://doc.rust-lang.org/rust-by-example/std_misc/file/create.html
-        let file_error = mod_files::get_new_file(&path_error)?;
+        let file_error = get_new_file(&path_error)?;
         Ok((writer_csv, file_error))
     }
 
@@ -157,7 +157,7 @@ mod mod_files {
     }
 }
 
-mod mod_filenames {
+mod filter_file {
     use super::*;
 
     use std::collections::HashMap;
@@ -257,10 +257,10 @@ mod read_file {
         reader.lines()
     }
 
+    // https://stackoverflow.com/questions/36088116/how-to-do-polymorphic-io-from-either-a-file-or-stdin-in-rust
     fn get_file_reader(
         file_str: &str,
     ) -> Box<dyn BufRead>{
-    //) -> ReaderGzOrPlain<io::BufReader<flate2::read::GzDecoder<File>>, io::BufReader<std::fs::File>> {
         println!("Init file: {}", file_str);
         let file = File::open(file_str).unwrap();
         let result: Box<dyn BufRead> = match file_str.ends_with(".gz") {
@@ -308,101 +308,12 @@ mod write_file {
 
 }
 
-/*
-mod file_export {
-    use super::*;
-
-    use csv::Writer;
-    use flate2::read::GzDecoder;
-
-
-    pub fn export_file_to_csv(
-        file: &str,
-        writer_csv: &mut Writer<File>,
-        file_error: &mut io::BufWriter<std::fs::File>,
-    ) -> Result<(), Box<dyn Error>> {
-        println!("Init file: {}", file);
-        if file.ends_with(".gz") {
-            let lines = get_file_lines(file, read_gz_lines)?;
-            export_lines_to_file(lines, writer_csv, file_error)?;
-        } else {
-            let lines = get_file_lines(file, read_log_lines)?;
-            export_lines_to_file(lines, writer_csv, file_error)?;
-        };
-        writer_csv.flush()?;
-        Ok(())
-    }
-
-    fn get_file_lines<R>(
-        file: &str,
-        lines_reader: fn(File) -> io::Result<io::Lines<io::BufReader<R>>>,
-    ) -> Result<io::Lines<io::BufReader<R>>, Box<dyn Error>>
-    where
-        R: io::Read,
-    {
-        let file = File::open(file)?;
-        Ok(lines_reader(file).expect("Something went wrong reading the file"))
-    }
-
-    // https://doc.rust-lang.org/rust-by-example/std_misc/file/read_lines.html
-    fn read_log_lines(file: File) -> io::Result<io::Lines<io::BufReader<File>>> {
-        Ok(io::BufReader::new(file).lines())
-    }
-    fn read_gz_lines(
-        file: File,
-    ) -> io::Result<io::Lines<io::BufReader<flate2::read::GzDecoder<File>>>> {
-        Ok(io::BufReader::new(GzDecoder::new(file)).lines())
-    }
-
-    fn export_lines_to_file<R>(
-        lines: io::Lines<io::BufReader<R>>,
-        writer_csv: &mut Writer<File>,
-        file_error: &mut io::BufWriter<std::fs::File>,
-    ) -> Result<(), Box<dyn Error>>
-    where
-        R: io::Read,
-    {
-        for line in lines {
-            export_line_to_file(line, writer_csv, file_error)?;
-        }
-        Ok(())
-    }
-
-    fn export_line_to_file(
-        line: Result<String, io::Error>,
-        writer_csv: &mut Writer<File>,
-        file_error: &mut io::BufWriter<std::fs::File>,
-    ) -> Result<(), Box<dyn Error>> {
-        let log_line = line.expect("Something went wrong reading the line");
-        let log = m_log::get_log(&log_line);
-        match log {
-            None => {
-                write_line_to_file(log_line.to_string(), file_error)?;
-            }
-            Some(log_csv) => {
-                writer_csv.serialize(log_csv)?;
-            }
-        }
-        Ok(())
-    }
-
-    fn write_line_to_file(
-        file_error: &mut io::BufWriter<std::fs::File>,
-        line: String,
-    ) -> Result<(), String> {
-        if let Err(e) = file_error.write_all(format!("{}\n", line).as_bytes()) {
-            return Err(e.to_string());
-        }
-        Ok(())
-    }
-}
-*/
-
+// TODO test private functions
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::m_log::Log;
-    use crate::mod_filenames;
+    use crate::filter_file;
 
     #[test]
     fn test_get_log_filenames_sort_reverse() {
@@ -423,7 +334,7 @@ mod tests {
                 "access.log.1.gz",
                 "access.log",
             ],
-            mod_filenames::get_log_filenames_sort_reverse(&filenames)
+            filter_file::get_log_filenames_sort_reverse(&filenames)
         );
     }
 
