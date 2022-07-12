@@ -5,7 +5,6 @@ use std::io::Write;
 use std::io::{self, BufRead};
 use std::path::Path;
 
-use flate2::read::GzDecoder;
 
 pub struct Config {
     file_or_path: String,
@@ -27,22 +26,11 @@ impl Config {
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let (mut writer_csv, mut file_error) = mod_files::get_result_files(&config.file_or_path)?;
-
-    // TODO move to a method
-    //https://stackoverflow.com/questions/36088116/how-to-do-polymorphic-io-from-either-a-file-or-stdin-in-rust
-    let file_str = "/tmp/logs/access.log";
-    let file = File::open(file_str).unwrap();
-    let reader: Box<dyn BufRead> = match file_str.ends_with(".gz") {
-        true => Box::new(io::BufReader::new(GzDecoder::new(file))),
-        false => Box::new(io::BufReader::new(file))
-    };
-    for line in reader.lines() {
-        println!("{:?}", line);
-    }
-
-
-    let filenames = mod_filenames::get_filenames_to_analyze(&config.file_or_path)?;
-    for filename in filenames {
+    for filename in mod_filenames::get_filenames_to_analyze(&config.file_or_path)?{
+        //for line in reader.lines() {
+        for line in file_export::get_lines_in_file(&filename) {
+            println!("{:?}", line);
+        }
         file_export::export_file_to_csv(&filename, &mut writer_csv, &mut file_error)?;
     }
     Ok(())
@@ -255,26 +243,23 @@ mod file_export {
     use csv::Writer;
     use flate2::read::GzDecoder;
 
-    pub enum ReaderGzOrPlain<S, T> {
-        ReaderGz(S),
-        ReaderPlain(T),
+
+    pub fn get_lines_in_file(file_str: &str) -> io::Lines<Box<dyn BufRead>> {
+        let reader = get_file_reader(file_str);
+        reader.lines()
     }
 
-    //) -> Result<io::Lines<Box<dyn io::Read>>, Box<dyn Error>>
-    //) -> Result<io::Lines<io::BufReader<std::fs::File>>, Box<dyn Error>>
-    // https://stackoverflow.com/questions/33390395/can-a-function-return-different-types-depending-on-conditional-statements-in-the
-    // https://users.rust-lang.org/t/return-different-types/51534
-    // TODO continue here
-    pub fn get_file_lines_b(
+    fn get_file_reader(
         file_str: &str,
-    ) -> ReaderGzOrPlain<io::BufReader<flate2::read::GzDecoder<File>>, io::BufReader<std::fs::File>> {
+    ) -> Box<dyn BufRead>{
+    //) -> ReaderGzOrPlain<io::BufReader<flate2::read::GzDecoder<File>>, io::BufReader<std::fs::File>> {
         println!("Init file: {}", file_str);
         let file = File::open(file_str).unwrap();
-        if file_str.ends_with(".gz") {
-            return ReaderGzOrPlain::ReaderGz(io::BufReader::new(GzDecoder::new(file)));
-        }
-        //ReaderGzOrPlain::ReaderPlain(io::BufReader::new(file))
-        ReaderGzOrPlain::ReaderGz(io::BufReader::new(GzDecoder::new(file)))
+        let result: Box<dyn BufRead> = match file_str.ends_with(".gz") {
+            true => Box::new(io::BufReader::new(GzDecoder::new(file))),
+            false => Box::new(io::BufReader::new(file))
+        };
+        result
     }
 
     pub fn export_file_to_csv(
