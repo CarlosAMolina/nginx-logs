@@ -33,10 +33,10 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
             let log = m_log::get_log(&line_str);
             match log {
                 None => {
-                    write_file::write_line_to_file_error(line_str, &mut file_error)?;
+                    write_file::write_to_file_error(line_str, &mut file_error)?;
                 }
                 Some(log_csv) => {
-                    write_file::write_line_to_file_result(log_csv.to_string(), &mut writer_csv)?;
+                    write_file::write_to_file_result(log_csv, &mut writer_csv)?;
                 }
             }
         }
@@ -278,7 +278,7 @@ mod write_file {
     use csv::Writer;
 
 
-    pub fn write_line_to_file_error(
+    pub fn write_to_file_error(
         line: String,
         file_error: &mut io::BufWriter<std::fs::File>,
     ) -> Result<(), Box<dyn Error>> {
@@ -297,8 +297,8 @@ mod write_file {
         Ok(())
     }
 
-    pub fn write_line_to_file_result(
-        line: String,
+    pub fn write_to_file_result(
+        line: m_log::Log,
         writer_csv: &mut Writer<File>,
     ) -> Result<(), Box<dyn Error>> {
         writer_csv.serialize(line)?;
