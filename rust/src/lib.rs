@@ -2,11 +2,12 @@ use std::env;
 use std::error::Error;
 use std::fs::{self, File};
 use std::io::Write;
-use std::io::{self, BufRead};
+use std::io;
 use std::path::Path;
 
-mod m_log;
 mod create_file;
+mod m_log;
+mod read_file;
 
 pub struct Config {
     file_or_path: String,
@@ -132,31 +133,6 @@ mod filter_file {
             let filename = numbers_and_filenames.get(number).unwrap();
             result.push(filename.clone());
         }
-        result
-    }
-}
-
-mod read_file {
-    use super::*;
-
-    use flate2::read::GzDecoder;
-
-
-    pub fn get_lines_in_file(file_str: &str) -> io::Lines<Box<dyn BufRead>> {
-        let reader = get_file_reader(file_str);
-        reader.lines()
-    }
-
-    // https://stackoverflow.com/questions/36088116/how-to-do-polymorphic-io-from-either-a-file-or-stdin-in-rust
-    fn get_file_reader(
-        file_str: &str,
-    ) -> Box<dyn BufRead>{
-        println!("Init file: {}", file_str);
-        let file = File::open(file_str).unwrap();
-        let result: Box<dyn BufRead> = match file_str.ends_with(".gz") {
-            true => Box::new(io::BufReader::new(GzDecoder::new(file))),
-            false => Box::new(io::BufReader::new(file))
-        };
         result
     }
 }
