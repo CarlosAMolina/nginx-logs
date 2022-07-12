@@ -62,7 +62,6 @@ pub fn get_log(text: &str) -> Option<Log> {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;

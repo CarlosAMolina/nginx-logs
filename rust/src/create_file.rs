@@ -17,9 +17,7 @@ pub fn get_result_files(
     Ok((writer_csv, file_error))
 }
 
-fn get_paths_to_work_with(
-    file_or_path_to_check: &Path,
-) -> (PathBuf, PathBuf) {
+fn get_paths_to_work_with(file_or_path_to_check: &Path) -> (PathBuf, PathBuf) {
     let path_to_check = match file_or_path_to_check.is_file() {
         true => file_or_path_to_check.parent().unwrap(),
         false => file_or_path_to_check,
@@ -69,5 +67,4 @@ mod tests {
         assert_eq!(data, "foo,foo,foo,\"foo, bar\",foo,foo,foo,foo\n");
         Ok(())
     }
-
 }

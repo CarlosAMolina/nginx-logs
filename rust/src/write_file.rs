@@ -5,7 +5,6 @@ use std::io::{BufWriter, Write};
 
 use crate::m_log::Log;
 
-
 pub fn write_to_file_error(
     line: String,
     file_error: &mut BufWriter<File>,
@@ -15,10 +14,7 @@ pub fn write_to_file_error(
     Ok(())
 }
 
-fn write_line_to_file(
-    file_error: &mut BufWriter<File>,
-    line: String,
-) -> Result<(), String> {
+fn write_line_to_file(file_error: &mut BufWriter<File>, line: String) -> Result<(), String> {
     if let Err(e) = file_error.write_all(format!("{}\n", line).as_bytes()) {
         return Err(e.to_string());
     }

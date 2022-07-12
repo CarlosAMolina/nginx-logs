@@ -24,7 +24,7 @@ fn get_filenames_to_analyze_in_path(path: &str) -> Result<Vec<String>, Box<dyn E
     //https://doc.rust-lang.org/std/fs/fn.read_dir.html
     let entries = fs::read_dir(path)?
         .map(|res| res.map(|e| e.path()))
-        .collect::<Result<Vec<_>,IoError>>()?;
+        .collect::<Result<Vec<_>, IoError>>()?;
     let filenames = entries
         .iter()
         .map(|e| e.file_name().unwrap().to_str().unwrap())
@@ -87,7 +87,6 @@ fn get_filenames_sorted(numbers_and_filenames: HashMap<u8, String>) -> Vec<Strin
     result
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -114,5 +113,4 @@ mod tests {
             get_log_filenames_sort_reverse(&filenames)
         );
     }
-
 }
