@@ -29,9 +29,18 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     for filename in mod_filenames::get_filenames_to_analyze(&config.file_or_path)?{
         //for line in reader.lines() {
         for line in read_file::get_lines_in_file(&filename) {
-            println!("{:?}", line);
+            let line_str = line.expect("Something went wrong reading the line");
+            let log = m_log::get_log(&line_str);
+            match log {
+                None => {
+                    write_file::write_line_to_file_error(line_str, &mut file_error)?;
+                }
+                Some(log_csv) => {
+                    write_file::write_line_to_file_result(log_csv.to_string(), &mut writer_csv)?;
+                }
+            }
         }
-        file_export::export_file_to_csv(&filename, &mut writer_csv, &mut file_error)?;
+        //file_export::export_file_to_csv(&filename, &mut writer_csv, &mut file_error)?;
     }
     Ok(())
 }
@@ -263,6 +272,43 @@ mod read_file {
 }
 
 
+mod write_file {
+    use super::*;
+
+    use csv::Writer;
+
+
+    pub fn write_line_to_file_error(
+        line: String,
+        file_error: &mut io::BufWriter<std::fs::File>,
+    ) -> Result<(), Box<dyn Error>> {
+        eprintln!("Not parsed: {}", line);
+        write_line_to_file(file_error, line)?;
+        Ok(())
+    }
+
+    fn write_line_to_file(
+        file_error: &mut io::BufWriter<std::fs::File>,
+        line: String,
+    ) -> Result<(), String> {
+        if let Err(e) = file_error.write_all(format!("{}\n", line).as_bytes()) {
+            return Err(e.to_string());
+        }
+        Ok(())
+    }
+
+    pub fn write_line_to_file_result(
+        line: String,
+        writer_csv: &mut Writer<File>,
+    ) -> Result<(), Box<dyn Error>> {
+        writer_csv.serialize(line)?;
+        Ok(())
+    }
+
+
+}
+
+/*
 mod file_export {
     use super::*;
 
@@ -331,8 +377,7 @@ mod file_export {
         let log = m_log::get_log(&log_line);
         match log {
             None => {
-                eprintln!("Not parsed: {}", log_line);
-                write_line_to_file(file_error, log_line.to_string())?;
+                write_line_to_file(log_line.to_string(), file_error)?;
             }
             Some(log_csv) => {
                 writer_csv.serialize(log_csv)?;
@@ -351,6 +396,7 @@ mod file_export {
         Ok(())
     }
 }
+*/
 
 #[cfg(test)]
 mod tests {
