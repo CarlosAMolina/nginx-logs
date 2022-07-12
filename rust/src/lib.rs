@@ -5,6 +5,8 @@ use std::io::Write;
 use std::io::{self, BufRead};
 use std::path::Path;
 
+use flate2::read::GzDecoder;
+
 pub struct Config {
     file_or_path: String,
 }
@@ -25,6 +27,20 @@ impl Config {
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let (mut writer_csv, mut file_error) = mod_files::get_result_files(&config.file_or_path)?;
+
+    // TODO move to a method
+    //https://stackoverflow.com/questions/36088116/how-to-do-polymorphic-io-from-either-a-file-or-stdin-in-rust
+    let file_str = "/tmp/logs/access.log";
+    let file = File::open(file_str).unwrap();
+    let reader: Box<dyn BufRead> = match file_str.ends_with(".gz") {
+        true => Box::new(io::BufReader::new(GzDecoder::new(file))),
+        false => Box::new(io::BufReader::new(file))
+    };
+    for line in reader.lines() {
+        println!("{:?}", line);
+    }
+
+
     let filenames = mod_filenames::get_filenames_to_analyze(&config.file_or_path)?;
     for filename in filenames {
         file_export::export_file_to_csv(&filename, &mut writer_csv, &mut file_error)?;
@@ -239,9 +255,9 @@ mod file_export {
     use csv::Writer;
     use flate2::read::GzDecoder;
 
-    enum TypeOr<S, T> {
-        Left(S),
-        Right(T),
+    pub enum ReaderGzOrPlain<S, T> {
+        ReaderGz(S),
+        ReaderPlain(T),
     }
 
     //) -> Result<io::Lines<Box<dyn io::Read>>, Box<dyn Error>>
@@ -251,29 +267,14 @@ mod file_export {
     // TODO continue here
     pub fn get_file_lines_b(
         file_str: &str,
-    ) -> TypeOr<io::BufReader<flate2::read::GzDecoder<File>>, io::BufReader<File>> {
-        //) -> impl io::Read {
+    ) -> ReaderGzOrPlain<io::BufReader<flate2::read::GzDecoder<File>>, io::BufReader<std::fs::File>> {
         println!("Init file: {}", file_str);
-
         let file = File::open(file_str).unwrap();
-        //io::BufReader::new(file)
-        //io::BufReader::new(GzDecoder::new(file))
-        //
         if file_str.ends_with(".gz") {
-            return TypeOr::Left(io::BufReader::new(GzDecoder::new(file)));
-            //
+            return ReaderGzOrPlain::ReaderGz(io::BufReader::new(GzDecoder::new(file)));
         }
-        TypeOr::Right(io::BufReader::new(file))
-        //else {
-        //    return io::BufReader::new(GzDecoder::new(file));
-        //};
-        //io::BufReader::new(file)
-
-        //if file.ends_with(".gz") {
-        //    Ok(io::BufReader::new(file).lines())
-        //} else {
-        //    Ok(io::BufReader::new(GzDecoder::new(file)).lines())
-        //};
+        //ReaderGzOrPlain::ReaderPlain(io::BufReader::new(file))
+        ReaderGzOrPlain::ReaderGz(io::BufReader::new(GzDecoder::new(file)))
     }
 
     pub fn export_file_to_csv(
