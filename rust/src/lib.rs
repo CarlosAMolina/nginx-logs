@@ -1,12 +1,13 @@
 use std::env;
 use std::error::Error;
-use std::fs::{self, File};
-use std::io::{BufWriter, Error as IoError, Write};
+use std::fs;
+use std::io::Error as IoError;
 use std::path::Path;
 
 mod create_file;
 mod m_log;
 mod read_file;
+mod write_file;
 
 pub struct Config {
     file_or_path: String,
@@ -136,42 +137,6 @@ mod filter_file {
     }
 }
 
-
-mod write_file {
-    use super::*;
-
-    use csv::Writer;
-
-
-    pub fn write_to_file_error(
-        line: String,
-        file_error: &mut BufWriter<File>,
-    ) -> Result<(), Box<dyn Error>> {
-        eprintln!("Not parsed: {}", line);
-        write_line_to_file(file_error, line)?;
-        Ok(())
-    }
-
-    fn write_line_to_file(
-        file_error: &mut BufWriter<File>,
-        line: String,
-    ) -> Result<(), String> {
-        if let Err(e) = file_error.write_all(format!("{}\n", line).as_bytes()) {
-            return Err(e.to_string());
-        }
-        Ok(())
-    }
-
-    pub fn write_to_file_result(
-        line: m_log::Log,
-        writer_csv: &mut Writer<File>,
-    ) -> Result<(), Box<dyn Error>> {
-        writer_csv.serialize(line)?;
-        Ok(())
-    }
-
-
-}
 
 // TODO test private functions
 #[cfg(test)]
