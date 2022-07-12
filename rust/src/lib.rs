@@ -28,7 +28,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let (mut writer_csv, mut file_error) = mod_files::get_result_files(&config.file_or_path)?;
     for filename in mod_filenames::get_filenames_to_analyze(&config.file_or_path)?{
         //for line in reader.lines() {
-        for line in file_export::get_lines_in_file(&filename) {
+        for line in read_file::get_lines_in_file(&filename) {
             println!("{:?}", line);
         }
         file_export::export_file_to_csv(&filename, &mut writer_csv, &mut file_error)?;
@@ -237,10 +237,9 @@ mod mod_filenames {
     }
 }
 
-mod file_export {
+mod read_file {
     use super::*;
 
-    use csv::Writer;
     use flate2::read::GzDecoder;
 
 
@@ -261,6 +260,15 @@ mod file_export {
         };
         result
     }
+}
+
+
+mod file_export {
+    use super::*;
+
+    use csv::Writer;
+    use flate2::read::GzDecoder;
+
 
     pub fn export_file_to_csv(
         file: &str,
