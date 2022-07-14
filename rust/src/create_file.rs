@@ -5,36 +5,36 @@ use std::path::{Path, PathBuf};
 
 use csv::WriterBuilder;
 
-pub fn get_result_files(
-    path: &str,
+pub fn get_result_writers(
+    pathname: &str,
 ) -> Result<(csv::Writer<File>, BufWriter<File>), Box<dyn Error>> {
-    let file_or_path_to_check = Path::new(path);
-    let (path_csv, path_error) = get_paths_to_work_with(file_or_path_to_check);
+    let path = Path::new(pathname);
+    let (path_csv, path_error) = get_paths_to_work_with(path);
     println!("File with logs as csv: {}", path_csv.display());
     println!("File with not parsed logs: {}", path_error.display());
-    let writer_csv = get_csv_writer_builder().from_path(&path_csv)?;
-    let file_error = get_new_file(&path_error)?;
+    let writer_csv = get_csv_writer().from_path(&path_csv)?;
+    let file_error = get_file_writer(&path_error)?;
     Ok((writer_csv, file_error))
 }
 
-fn get_paths_to_work_with(file_or_path_to_check: &Path) -> (PathBuf, PathBuf) {
-    let path_to_check = match file_or_path_to_check.is_file() {
-        true => file_or_path_to_check.parent().unwrap(),
-        false => file_or_path_to_check,
+fn get_paths_to_work_with(path: &Path) -> (PathBuf, PathBuf) {
+    let path_without_filename = match path.is_file() {
+        true => path.parent().unwrap(),
+        false => path,
     };
     (
-        path_to_check.join("result.csv"),
-        path_to_check.join("error.txt"),
+        path_without_filename.join("result.csv"),
+        path_without_filename.join("error.txt"),
     )
 }
 
 //https://docs.rs/csv/latest/csv/tutorial/index.html#writing-csv
-fn get_csv_writer_builder() -> WriterBuilder {
+fn get_csv_writer() -> WriterBuilder {
     WriterBuilder::new()
 }
 
 // https://doc.rust-lang.org/rust-by-example/std_misc/file/create.html
-fn get_new_file(path: &Path) -> Result<BufWriter<File>, String> {
+fn get_file_writer(path: &Path) -> Result<BufWriter<File>, String> {
     let file = match File::create(&path) {
         Err(why) => return Err(format!("couldn't create {}: {}", path.display(), why)),
         Ok(file) => file,
@@ -50,7 +50,7 @@ mod tests {
     //https://docs.rs/csv/latest/csv/struct.WriterBuilder.html#example-with-headers
     #[test]
     fn test_export_to_csv_escapes_comma() -> Result<(), Box<dyn Error>> {
-        let mut wtr = get_csv_writer_builder()
+        let mut wtr = get_csv_writer()
             .has_headers(false)
             .from_writer(vec![]);
         wtr.serialize(Log {
