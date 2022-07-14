@@ -67,7 +67,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_log_for_parsed_log() {
+    fn test_get_log_for_correct_log() {
         assert_eq!(
             Some(Log{
                 remote_addr: "8.8.8.8",
@@ -84,7 +84,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_log_for_not_parsed_log() {
+    fn test_get_log_for_incorrect_log() {
         assert_eq!(
             None,
             get_log("8.8.8.8 - - [28/Oct/2021:00:18:22 +0100 \"GET / HTTP/1.1\" 200 77 \"-\" \"foo bar 1\"")
