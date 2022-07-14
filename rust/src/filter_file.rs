@@ -4,25 +4,25 @@ use std::fs;
 use std::io::Error as IoError;
 use std::path::Path;
 
-pub fn get_filenames_to_analyze(
-    file_or_path_to_check: &str,
+pub fn get_pathnames_to_analyze(
+    pathname: &str,
 ) -> Result<Vec<String>, Box<dyn Error>> {
-    let file_or_path = Path::new(file_or_path_to_check);
-    if file_or_path.is_file() {
-        Ok(vec![file_or_path_to_check.to_string()])
+    let path = Path::new(pathname);
+    if path.is_file() {
+        Ok(vec![pathname.to_string()])
     } else {
-        let filenames = get_filenames_to_analyze_in_path(file_or_path_to_check)?;
+        let filenames = get_filenames_to_analyze_in_directory(pathname)?;
         let mut result = Vec::new();
         for filename in filenames {
-            result.push(file_or_path.join(filename).to_str().unwrap().to_string());
+            result.push(path.join(filename).to_str().unwrap().to_string());
         }
         Ok(result)
     }
 }
 
-fn get_filenames_to_analyze_in_path(path: &str) -> Result<Vec<String>, Box<dyn Error>> {
+fn get_filenames_to_analyze_in_directory(pathname: &str) -> Result<Vec<String>, Box<dyn Error>> {
     //https://doc.rust-lang.org/std/fs/fn.read_dir.html
-    let entries = fs::read_dir(path)?
+    let entries = fs::read_dir(pathname)?
         .map(|res| res.map(|e| e.path()))
         .collect::<Result<Vec<_>, IoError>>()?;
     let filenames = entries
