@@ -118,31 +118,39 @@ def get_log(line: str) -> Optional[Log]:
     )
 
 
+def run(args):
+    print(f"Checking: {args.pathname}")
+    path = Path(args.pathname)
+    file_csv, writer_csv, file_error = get_result_writers(path)
+    writer_csv.writeheader()
+    for pathname in get_pathnames_to_analyze(path):
+        for line in FileReader().get_lines_in_pathname(pathname):
+            if len(line) != 0:
+                log = get_log(line)
+                if log is None:
+                    write_to_file_error(line, file_error)
+                else:
+                    write_to_file_result(log, writer_csv)
+    file_csv.close()
+    file_error.close()
+
+
+def get_result_writers(path: Path):
+    path_without_filename = path.parent if path.is_file() else path
+    path_csv, path_error = get_paths_to_work_with(path_without_filename)
+    print(f"File with logs as csv: {path_csv}")
+    print(f"File with not parsed logs: {path_error}")
+    file_csv = open(path_csv, "w")
+    file_error = open(path_error, "w")
+    writer_csv = csv.DictWriter(file_csv, fieldnames=Log.DICT_KEYS)
+    return file_csv, writer_csv, file_error
+
+
 def get_paths_to_work_with(path_without_filename: Path) -> Tuple[Path, Path]:
     return [
         path_without_filename.joinpath("result.csv"),
         path_without_filename.joinpath("error.txt"),
     ]
-
-
-def run(args):
-    print(f"Checking: {args.pathname}")
-    path = Path(args.pathname)
-    path_without_filename = path.parent if path.is_file() else path
-    path_csv, path_error = get_paths_to_work_with(path_without_filename)
-    print(f"File with logs as csv: {path_csv}")
-    print(f"File with not parsed logs: {path_error}")
-    with open(path_csv, "w") as file_csv, open(path_error, "w") as file_error:
-        writer_csv = csv.DictWriter(file_csv, fieldnames=Log.DICT_KEYS)
-        writer_csv.writeheader()
-        for pathname in get_pathnames_to_analyze(path):
-            for line in FileReader().get_lines_in_pathname(pathname):
-                if len(line) != 0:
-                    log = get_log(line)
-                    if log is None:
-                        write_to_file_error(line, file_error)
-                    else:
-                        write_to_file_result(log, writer_csv)
 
 
 def get_pathnames_to_analyze(path: Path) -> Iterator[str]:

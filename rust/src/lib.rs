@@ -28,7 +28,6 @@ impl Config {
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let (mut writer_csv, mut writer_error) = create_file::get_result_writers(&config.pathname)?;
     for pathname in filter_file::get_pathnames_to_analyze(&config.pathname)? {
-        //for line in reader.lines() {
         for line in read_file::get_lines_in_pathname(&pathname) {
             let line_str = line.expect("Something went wrong reading the line");
             let log = m_log::get_log(&line_str);
