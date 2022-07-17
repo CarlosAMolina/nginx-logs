@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Iterator, List, Optional, Tuple
 import argparse
 import csv
 import gzip
@@ -129,18 +129,23 @@ def run(args):
     print(f"Checking: {args.pathname}")
     path = Path(args.pathname)
     path_without_filename = path.parent if path.is_file() else path
-    path_csv, path_error = get_paths_to_work_with(path)
+    path_csv, path_error = get_paths_to_work_with(path_without_filename)
     print(f"File with logs as csv: {path_csv}")
     print(f"File with not parsed logs: {path_error}")
     with open(path_csv, "w") as file_csv, open(path_error, "w") as file_error:
         writer_csv = csv.DictWriter(file_csv, fieldnames=Log.DICT_KEYS)
         writer_csv.writeheader()
-        export_file_to_csv = FileExport(writer_csv, file_error).export_file_to_csv
-        if path.is_file():
-            export_file_to_csv(path)
-        elif path.is_dir():
-            for filename in FilenamesFilter().get_filenames_to_analyze_in_path(path):
-                export_file_to_csv(path_without_filename.joinpath(filename))
+        export_file_to_csv = FileExport(writer_csv, file_error)
+        for pathname in get_pathnames_to_analyze(path):
+            export_file_to_csv(pathname)
+
+
+def get_pathnames_to_analyze(path: Path) -> Iterator[str]:
+    if path.is_file():
+        yield str(path)
+    elif path.is_dir():
+        for filename in FilenamesFilter().get_filenames_to_analyze_in_path(path):
+            yield str(path.joinpath(filename))
 
 
 class FilenamesFilter:
@@ -189,8 +194,11 @@ class FileExport:
         self._writer_csv = writer_csv
         self._writable_error = writable_error
 
-    def export_file_to_csv(self, path_to_check: str):
-        if str(path_to_check).endswith(".gz"):
+    def __call__(self, path_to_check: str):
+        self._export_file_to_csv(path_to_check)
+
+    def _export_file_to_csv(self, path_to_check: str):
+        if path_to_check.endswith(".gz"):
             self._export_gz_file_to_csv(path_to_check)
         else:
             self._export_log_file_to_csv(path_to_check)
