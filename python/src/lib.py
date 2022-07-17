@@ -138,6 +138,8 @@ def run(args):
         export_file_to_csv = FileExport(writer_csv, file_error)
         for pathname in get_pathnames_to_analyze(path):
             export_file_to_csv(pathname)
+            for line in FileReader().get_lines_in_file(pathname):
+                print(line)
 
 
 def get_pathnames_to_analyze(path: Path) -> Iterator[str]:
@@ -146,6 +148,30 @@ def get_pathnames_to_analyze(path: Path) -> Iterator[str]:
     elif path.is_dir():
         for filename in FilenamesFilter().get_filenames_to_analyze_in_path(path):
             yield str(path.joinpath(filename))
+
+
+class FileReader:
+    def get_lines_in_file(self, pathname: str) -> Iterator[str]:
+        print(f"Init file: {pathname}")
+        for line in self._get_lines_in_file(pathname):
+            yield line
+
+    def _get_lines_in_file(self, pathname: str) -> Iterator[str]:
+        return (
+            self._get_lines_in_gz_file(pathname)
+            if pathname.endswith(".gz")
+            else self._get_lines_in_log_file(pathname)
+        )
+
+    def _get_lines_in_log_file(self, pathname: str) -> Iterator[str]:
+        with open(pathname, "r") as file:
+            for line in file.read().splitlines():
+                yield line
+
+    def _get_lines_in_gz_file(self, pathname: str) -> Iterator[str]:
+        with gzip.open(pathname, mode="rt") as fp:
+            for line in fp:
+                yield line
 
 
 class FilenamesFilter:
