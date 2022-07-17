@@ -10,7 +10,7 @@ def get_args_parsed():
     # https://docs.python.org/3/library/argparse.html#the-add-argument-method
     parser = argparse.ArgumentParser(description="Export Nginx logs to a csv file.")
     parser.add_argument(
-        "file_or_path",
+        "pathname",
         type=str,
         help="path to a folder with the log files or to an specific file",
     )
@@ -118,29 +118,29 @@ def get_log(line: str) -> Optional[Log]:
     )
 
 
+def get_paths_to_work_with(path_without_filename: Path) -> Tuple[Path, Path]:
+    return [
+        path_without_filename.joinpath("result.csv"),
+        path_without_filename.joinpath("error.txt"),
+    ]
+
+
 def run(args):
-    print(f"Checking: {args.file_or_path}")
-    file_or_path_to_check = Path(args.file_or_path)
-    path_to_check = (
-        file_or_path_to_check.parent
-        if file_or_path_to_check.is_file()
-        else file_or_path_to_check
-    )
-    path_csv = path_to_check.joinpath("result.csv")
+    print(f"Checking: {args.pathname}")
+    path = Path(args.pathname)
+    path_without_filename = path.parent if path.is_file() else path
+    path_csv, path_error = get_paths_to_work_with(path)
     print(f"File with logs as csv: {path_csv}")
-    path_error = path_to_check.joinpath("error.txt")
     print(f"File with not parsed logs: {path_error}")
     with open(path_csv, "w") as file_csv, open(path_error, "w") as file_error:
         writer_csv = csv.DictWriter(file_csv, fieldnames=Log.DICT_KEYS)
         writer_csv.writeheader()
         export_file_to_csv = FileExport(writer_csv, file_error).export_file_to_csv
-        if file_or_path_to_check.is_file():
-            export_file_to_csv(file_or_path_to_check)
-        elif file_or_path_to_check.is_dir():
-            for filename in FilenamesFilter().get_filenames_to_analyze_in_path(
-                file_or_path_to_check
-            ):
-                export_file_to_csv(path_to_check.joinpath(filename))
+        if path.is_file():
+            export_file_to_csv(path)
+        elif path.is_dir():
+            for filename in FilenamesFilter().get_filenames_to_analyze_in_path(path):
+                export_file_to_csv(path_without_filename.joinpath(filename))
 
 
 class FilenamesFilter:
