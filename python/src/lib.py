@@ -135,11 +135,14 @@ def run(args):
     with open(path_csv, "w") as file_csv, open(path_error, "w") as file_error:
         writer_csv = csv.DictWriter(file_csv, fieldnames=Log.DICT_KEYS)
         writer_csv.writeheader()
-        export_file_to_csv = FileExport(writer_csv, file_error)
         for pathname in get_pathnames_to_analyze(path):
-            export_file_to_csv(pathname)
             for line in FileReader().get_lines_in_file(pathname):
-                print(line)
+                if len(line) != 0:
+                    log = get_log(line)
+                    if log is None:
+                        write_to_file_error(line, file_error)
+                    else:
+                        write_to_file_result(log, writer_csv)
 
 
 def get_pathnames_to_analyze(path: Path) -> Iterator[str]:
@@ -215,38 +218,10 @@ class FilenamesFilter:
         ]
 
 
-class FileExport:
-    def __init__(self, writer_csv, writable_error):
-        self._writer_csv = writer_csv
-        self._writable_error = writable_error
+def write_to_file_result(log: Log, writer):
+    writer.writerow(log.asdict())
 
-    def __call__(self, path_to_check: str):
-        self._export_file_to_csv(path_to_check)
 
-    def _export_file_to_csv(self, path_to_check: str):
-        if path_to_check.endswith(".gz"):
-            self._export_gz_file_to_csv(path_to_check)
-        else:
-            self._export_log_file_to_csv(path_to_check)
-
-    def _export_log_file_to_csv(self, path_to_check: str):
-        print(f"Init file: {path_to_check}")
-        with open(path_to_check, "r") as file:
-            for line in file.read().splitlines():
-                self._export_line(line)
-
-    def _export_gz_file_to_csv(self, path_to_check: str):
-        print(f"Init file: {path_to_check}")
-        with gzip.open(path_to_check, mode="rt") as fp:
-            for line in fp:
-                self._export_line(line)
-
-    def _export_line(self, line: str):
-        if len(line) != 0:
-            log = get_log(line)
-            if log is None:
-                print(f"Not parsed: {line}")
-                self._writable_error.write(line)
-                self._writable_error.write("\n")
-            else:
-                self._writer_csv.writerow(log.asdict())
+def write_to_file_error(line: str, writer):
+    print(f"Not parsed: {line}")
+    writer.write(f"{line}\n")
