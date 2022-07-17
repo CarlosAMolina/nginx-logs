@@ -21,10 +21,7 @@ fn write_line_to_file(line: String, writer: &mut BufWriter<File>) -> Result<(), 
     Ok(())
 }
 
-pub fn write_to_file_result(
-    line: Log,
-    writer: &mut Writer<File>,
-) -> Result<(), Box<dyn Error>> {
+pub fn write_to_file_result(line: Log, writer: &mut Writer<File>) -> Result<(), Box<dyn Error>> {
     writer.serialize(line)?;
     Ok(())
 }

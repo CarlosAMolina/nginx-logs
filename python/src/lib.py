@@ -136,7 +136,7 @@ def run(args):
         writer_csv = csv.DictWriter(file_csv, fieldnames=Log.DICT_KEYS)
         writer_csv.writeheader()
         for pathname in get_pathnames_to_analyze(path):
-            for line in FileReader().get_lines_in_file(pathname):
+            for line in FileReader().get_lines_in_pathname(pathname):
                 if len(line) != 0:
                     log = get_log(line)
                     if log is None:
@@ -154,12 +154,12 @@ def get_pathnames_to_analyze(path: Path) -> Iterator[str]:
 
 
 class FileReader:
-    def get_lines_in_file(self, pathname: str) -> Iterator[str]:
+    def get_lines_in_pathname(self, pathname: str) -> Iterator[str]:
         print(f"Init file: {pathname}")
-        for line in self._get_lines_in_file(pathname):
+        for line in self._get_lines_in_pathname(pathname):
             yield line
 
-    def _get_lines_in_file(self, pathname: str) -> Iterator[str]:
+    def _get_lines_in_pathname(self, pathname: str) -> Iterator[str]:
         return (
             self._get_lines_in_gz_file(pathname)
             if pathname.endswith(".gz")

@@ -4,9 +4,7 @@ use std::fs;
 use std::io::Error as IoError;
 use std::path::Path;
 
-pub fn get_pathnames_to_analyze(
-    pathname: &str,
-) -> Result<Vec<String>, Box<dyn Error>> {
+pub fn get_pathnames_to_analyze(pathname: &str) -> Result<Vec<String>, Box<dyn Error>> {
     let path = Path::new(pathname);
     if path.is_file() {
         Ok(vec![pathname.to_string()])

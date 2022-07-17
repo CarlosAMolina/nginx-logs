@@ -50,9 +50,7 @@ mod tests {
     //https://docs.rs/csv/latest/csv/struct.WriterBuilder.html#example-with-headers
     #[test]
     fn test_export_to_csv_escapes_comma() -> Result<(), Box<dyn Error>> {
-        let mut wtr = get_csv_writer()
-            .has_headers(false)
-            .from_writer(vec![]);
+        let mut wtr = get_csv_writer().has_headers(false).from_writer(vec![]);
         wtr.serialize(Log {
             remote_addr: "foo",
             remote_user: "foo",

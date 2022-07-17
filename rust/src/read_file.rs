@@ -3,7 +3,7 @@ use std::io::{BufRead, BufReader, Lines};
 
 use flate2::read::GzDecoder;
 
-pub fn get_lines_in_file(pathname: &str) -> Lines<Box<dyn BufRead>> {
+pub fn get_lines_in_pathname(pathname: &str) -> Lines<Box<dyn BufRead>> {
     let reader = get_file_reader(pathname);
     reader.lines()
 }
