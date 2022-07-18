@@ -9,7 +9,7 @@ pub fn get_pathnames_to_analyze(pathname: &str) -> Result<Vec<String>, Box<dyn E
     if path.is_file() {
         Ok(vec![pathname.to_string()])
     } else {
-        let filenames = get_filenames_to_analyze_in_directory(pathname)?;
+        let filenames = get_filenames_to_analyze_in_pathname(pathname)?;
         let mut result = Vec::new();
         for filename in filenames {
             result.push(path.join(filename).to_str().unwrap().to_string());
@@ -18,7 +18,7 @@ pub fn get_pathnames_to_analyze(pathname: &str) -> Result<Vec<String>, Box<dyn E
     }
 }
 
-fn get_filenames_to_analyze_in_directory(pathname: &str) -> Result<Vec<String>, Box<dyn Error>> {
+fn get_filenames_to_analyze_in_pathname(pathname: &str) -> Result<Vec<String>, Box<dyn Error>> {
     //https://doc.rust-lang.org/std/fs/fn.read_dir.html
     let entries = fs::read_dir(pathname)?
         .map(|res| res.map(|e| e.path()))

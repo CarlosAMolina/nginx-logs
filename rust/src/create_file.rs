@@ -10,8 +10,6 @@ pub fn get_result_writers(
 ) -> Result<(csv::Writer<File>, BufWriter<File>), Box<dyn Error>> {
     let path = Path::new(pathname);
     let (path_csv, path_error) = get_paths_to_work_with(path);
-    println!("File with logs as csv: {}", path_csv.display());
-    println!("File with not parsed logs: {}", path_error.display());
     let writer_csv = get_csv_writer().from_path(&path_csv)?;
     let file_error = get_file_writer(&path_error)?;
     Ok((writer_csv, file_error))
@@ -22,10 +20,13 @@ fn get_paths_to_work_with(path: &Path) -> (PathBuf, PathBuf) {
         true => path.parent().unwrap(),
         false => path,
     };
-    (
+    let result = (
         path_without_filename.join("result.csv"),
         path_without_filename.join("error.txt"),
-    )
+    );
+    println!("File with logs as csv: {}", result.0.display());
+    println!("File with not parsed logs: {}", result.1.display());
+    result
 }
 
 //https://docs.rs/csv/latest/csv/tutorial/index.html#writing-csv
