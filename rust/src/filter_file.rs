@@ -8,13 +8,16 @@ pub fn get_pathnames_to_analyze(pathname: &str) -> Result<Vec<String>, Box<dyn E
     let path = Path::new(pathname);
     if path.is_file() {
         Ok(vec![pathname.to_string()])
-    } else {
+    } else if path.is_dir() {
         let filenames = get_filenames_to_analyze_in_pathname(pathname)?;
         let mut result = Vec::new();
         for filename in filenames {
             result.push(path.join(filename).to_str().unwrap().to_string());
         }
         Ok(result)
+    } else {
+        // https://users.rust-lang.org/t/how-to-convert-box-dyn-error-or-should-i-do-this-another-way/51291
+        Err(format!("Invalid type for {:?}", pathname).into())
     }
 }
 
