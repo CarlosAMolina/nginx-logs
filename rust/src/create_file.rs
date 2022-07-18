@@ -11,8 +11,8 @@ pub fn get_result_writers(
     let path = Path::new(pathname);
     let (path_csv, path_error) = get_paths_to_work_with(path);
     let writer_csv = get_csv_writer().from_path(&path_csv)?;
-    let file_error = get_file_writer(&path_error)?;
-    Ok((writer_csv, file_error))
+    let writer_error = get_file_writer(&path_error)?;
+    Ok((writer_csv, writer_error))
 }
 
 fn get_paths_to_work_with(path: &Path) -> (PathBuf, PathBuf) {

@@ -5,13 +5,13 @@ import csv
 import m_log
 
 
-def get_pathnames_to_work_with(pathname: str) -> Tuple[Path, Path]:
+def get_pathnames_to_work_with(pathname: str) -> Tuple[str, str]:
     path = Path(pathname)
     path_without_filename = path.parent if path.is_file() else path
-    result = [
-        path_without_filename.joinpath("result.csv"),
-        path_without_filename.joinpath("error.txt"),
-    ]
+    result = (
+        str(path_without_filename.joinpath("result.csv")),
+        str(path_without_filename.joinpath("error.txt")),
+    )
     print(f"File with logs as csv: {result[0]}")
     print(f"File with not parsed logs: {result[1]}")
     return result
