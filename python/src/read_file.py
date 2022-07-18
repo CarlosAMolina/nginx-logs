@@ -15,12 +15,12 @@ class FileReader:
             else self._get_lines_in_log_file(pathname)
         )
 
-    def _get_lines_in_log_file(self, pathname: str) -> Iterator[str]:
-        with open(pathname, "r") as file:
-            for line in file.read().splitlines():
-                yield line
-
     def _get_lines_in_gz_file(self, pathname: str) -> Iterator[str]:
         with gzip.open(pathname, mode="rt") as fp:
             for line in fp:
+                yield line
+
+    def _get_lines_in_log_file(self, pathname: str) -> Iterator[str]:
+        with open(pathname, "r") as file:
+            for line in file.read().splitlines():
                 yield line

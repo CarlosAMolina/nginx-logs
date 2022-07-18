@@ -64,10 +64,10 @@ fn get_filename_possible_number(filename: &str) -> String {
     if filename == "access.log" {
         "0".to_string()
     } else {
-        let mut number_index_end = 0;
-        if filename.ends_with(".gz") {
-            number_index_end = 1;
-        }
+        let number_index_end = match filename.ends_with(".gz") {
+            true => 1,
+            false => 0,
+        };
         filename
             .split('.')
             .nth_back(number_index_end)
