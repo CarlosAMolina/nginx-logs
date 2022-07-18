@@ -10,6 +10,8 @@ class FilenamesFilter:
         elif path.is_dir():
             for filename in self._get_filenames_to_analyze_in_path(path):
                 yield str(path.joinpath(filename))
+        else:
+            raise TypeError(f"Pathname {pathname}")
 
     def _get_filenames_to_analyze_in_path(self, path: Path) -> List[str]:
         filenames = [file_path.name for file_path in path.glob("*")]
