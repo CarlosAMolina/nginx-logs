@@ -1,0 +1,13 @@
+# File with commands to work with Docker.
+
+# Build.
+docker build --tag python-nginx-logs .
+
+# Run.
+docker run --rm -d --name python-nginx-logs-run python-nginx-logs
+
+# Interact.
+docker exec -it python-nginx-logs-run /bin/sh
+
+# Stop.
+#docker stop python-nginx-logs-run
