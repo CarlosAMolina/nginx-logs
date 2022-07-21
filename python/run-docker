@@ -37,7 +37,7 @@ function build_image(){
 function run_container(){
     docker run \
     --rm \
-    -d \
+    -it \
     --name $CONTAINER_NAME \
     --mount source=$VOLUME_NAME,target=$VOLUME_PATH_DOCKER $IMAGE_NAME
 }
