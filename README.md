@@ -36,6 +36,24 @@ Run at the main path of the project:
 cd python
 ```
 
+#### Run with Python and Docker
+
+Create the Docker image and volume:
+
+´´´bash
+./run-docker -b
+´´´
+
+Copy to the volume the logs to analyze. The volume's path is `/var/lib/docker/volumes/nginx-logs-volume/_data`.
+
+Run the script:
+
+´´´bash
+./run-docker -r
+´´´
+
+You can see the results in the volume's path.
+
 #### Run with Python
 
 Work with files in a folder:

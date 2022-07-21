@@ -1,13 +1,80 @@
 # File with commands to work with Docker.
 
-# Build.
-docker build --tag python-nginx-logs .
+# Config
+VOLUME_PATH_DOCKER=/app/logs
+VOLUME_NAME=nginx-logs-volume
+CONTAINER_NAME=python-nginx-logs-run
+IMAGE_NAME=python-nginx-logs
 
-# Run.
-docker run --rm -d --name python-nginx-logs-run python-nginx-logs
+function show_help(){
+    echo "SYNOPSIS"
+    echo "    ./run-docker [-h --help]"
+    echo "                 [-b --build]"
+    echo "                 [-r --run]"
+    echo "                 [-i --interact]"
+    echo "                 [-s --stop]"
+    echo "DESCRIPTION"
+    echo "    This script executes docker commands"
+    echo "OPTIONS"
+    echo "    -b --build"
+    echo "        Build image."
+    echo "    -r --run"
+    echo "        Run container."
+    echo "    -i --interact"
+    echo "        Open shell in container."
+    echo "    -s --stop"
+    echo "        Stop container."
+    echo "    -h --help"
+    echo "        Show help."
+}
 
-# Interact.
-docker exec -it python-nginx-logs-run /bin/sh
 
-# Stop.
-#docker stop python-nginx-logs-run
+function build_image(){
+    docker volume create $VOLUME_NAME
+    docker build --tag $IMAGE_NAME .
+}
+
+function run_container(){
+    docker run \
+    --rm \
+    -d \
+    --name $CONTAINER_NAME \
+    --mount source=$VOLUME_NAME,target=$VOLUME_PATH_DOCKER $IMAGE_NAME
+}
+
+function interact_container(){
+    docker exec -it $CONTAINER_NAME /bin/sh
+}
+
+function stop_container(){
+    docker stop $CONTAINER_NAME
+}
+
+case $1 in
+    -b|--build)
+        echo "[DEBUG] Init build"
+        build_image
+        ;;
+    -r|--run)
+        echo "[DEBUG] Init run"
+        run_container
+        ;;
+    -i|--interact)
+        echo "[DEBUG] Init interact"
+        interact_container
+        ;;
+    -s|--stop)
+        echo "[DEBUG] Init stop"
+        stop_container
+        ;;
+    -h|--help)
+        show_help
+        exit
+        ;;
+    *)
+        echo "[ERROR] Unknown option"
+        echo
+        show_help
+        exit 1
+        ;;
+esac
