@@ -1,7 +1,43 @@
-# syntax=docker/dockerfile:1
-FROM debian:stable-slim
+# Builder.
+FROM rust:latest AS builder
+
+ARG TARGET=x86_64-unknown-linux-musl
+ENV RUST_MUSL_CROSS_TARGET=$TARGET
+ENV OPENSSL_LIB_DIR="/usr/lib/x86_64-linux-gnu"
+ENV OPENSSL_INCLUDE_DIR="/usr/include/openssl"
+
+RUN rustup target add x86_64-unknown-linux-musl && \
+    apt-get update && \
+    apt-get install -y \
+        --no-install-recommends\
+        pkg-config \
+        musl-tools \
+        build-essential \
+        cmake \
+        musl-dev \
+        pkg-config \
+        && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* 
+
 WORKDIR /app
-RUN mkdir logs
-COPY target/release/nginx_logs .
-#ENTRYPOINT ["tail", "-f", "/dev/null"]
-ENTRYPOINT ["./nginx_logs", "logs"]
+
+
+COPY ./ .
+
+RUN cargo build --target x86_64-unknown-linux-musl --release
+
+# Final image.
+FROM alpine:3.16
+
+RUN apk add --update --no-cache \
+        su-exec~=0.2-r1 \
+        tzdata~=2022a-r0 && \
+    rm -rf /var/cache/apk && \
+    rm -rf /var/lib/app/lists*
+
+WORKDIR /app
+COPY entrypoint.sh /app/
+COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/croni /app/
+
+ENTRYPOINT ["/bin/sh", "/app/entrypoint.sh"]
+CMD ["/app/croni"]
