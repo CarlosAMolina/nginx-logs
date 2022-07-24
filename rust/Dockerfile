@@ -10,7 +10,6 @@ RUN rustup target add x86_64-unknown-linux-musl && \
         build-essential \
         cmake \
         musl-dev \
-        pkg-config \
         && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
