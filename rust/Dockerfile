@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Builder.
-FROM rust:latest AS builder
+FROM rust:1.62.1-slim AS builder
 
 RUN rustup target add x86_64-unknown-linux-musl && \
     apt-get update && \
