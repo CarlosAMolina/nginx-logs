@@ -39,7 +39,8 @@ function run_container(){
     --rm \
     -it \
     --name $CONTAINER_NAME \
-    --mount source=$VOLUME_NAME,target=$VOLUME_PATH_DOCKER $IMAGE_NAME
+    --mount source=$VOLUME_NAME,target=$VOLUME_PATH_DOCKER \
+    $IMAGE_NAME
 }
 
 function interact_container(){
