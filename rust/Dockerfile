@@ -27,8 +27,14 @@ RUN apk add --update --no-cache \
         su-exec~=0.2-r1 \
     rm -rf /var/cache/apk
 
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+# RUN chown -R appuser:appgroup /app # Not required, adds 5MB to the image size.
+USER appuser
+
 WORKDIR /app
 COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/nginx_logs /app/
+
 
 #ENTRYPOINT ["tail", "-f", "/dev/null"]
 ENTRYPOINT ["./nginx_logs", "logs"]
