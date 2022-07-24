@@ -1,11 +1,6 @@
 # Builder.
 FROM rust:latest AS builder
 
-ARG TARGET=x86_64-unknown-linux-musl
-ENV RUST_MUSL_CROSS_TARGET=$TARGET
-ENV OPENSSL_LIB_DIR="/usr/lib/x86_64-linux-gnu"
-ENV OPENSSL_INCLUDE_DIR="/usr/include/openssl"
-
 RUN rustup target add x86_64-unknown-linux-musl && \
     apt-get update && \
     apt-get install -y \
@@ -31,7 +26,6 @@ FROM alpine:3.16
 
 RUN apk add --update --no-cache \
         su-exec~=0.2-r1 \
-        tzdata~=2022a-r0 && \
     rm -rf /var/cache/apk && \
     rm -rf /var/lib/app/lists*
 
