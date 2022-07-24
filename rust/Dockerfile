@@ -17,7 +17,7 @@ RUN rustup target add x86_64-unknown-linux-musl && \
         musl-dev \
         pkg-config \
         && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* 
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -36,8 +36,7 @@ RUN apk add --update --no-cache \
     rm -rf /var/lib/app/lists*
 
 WORKDIR /app
-COPY entrypoint.sh /app/
-COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/croni /app/
+COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/nginx_logs /app/
 
-ENTRYPOINT ["/bin/sh", "/app/entrypoint.sh"]
-CMD ["/app/croni"]
+#ENTRYPOINT ["tail", "-f", "/dev/null"]
+ENTRYPOINT ["./nginx_logs", "logs"]
