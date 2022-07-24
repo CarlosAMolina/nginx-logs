@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+
 # Builder.
 FROM rust:latest AS builder
 
@@ -22,10 +24,6 @@ RUN cargo build --target x86_64-unknown-linux-musl --release
 
 # Final image.
 FROM alpine:3.16
-
-RUN apk add --update --no-cache \
-        su-exec~=0.2-r1 \
-    rm -rf /var/cache/apk
 
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
