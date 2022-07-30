@@ -1,8 +1,10 @@
-*.swp
 __pycache__
+/compare-resources/results-python.txt
+/compare-resources/results-rust.txt
+/python/env
 /python/error.txt
 /python/result.csv
 /rust/error.txt
 /rust/result.csv
 /rust/target/
-/python/env
+*.swp
