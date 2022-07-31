@@ -7,7 +7,17 @@ import re
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
-Metric = collections.namedtuple("Metric", ["cpu", "mem", "date"])
+Metric = collections.namedtuple("Metric", ["cpu", "mem", "time"])
+
+
+# TODO
+def get_seconds_elapsed():
+    """https://stackoverflow.com/questions/35241643/convert-datetime-time-into-datetime-timedelta-in-python-3-4"""
+    a = datetime.datetime(2022, 7, 31, 23, 50, 1)
+    b = datetime.datetime(2022, 7, 31, 23, 54, 11)
+    a2 = a - datetime.datetime.min
+    b2 = b - datetime.datetime.min
+    b2 - a2  # datetime.timedelta(seconds=250)
 
 
 class FileParser:
@@ -26,12 +36,12 @@ class FileParser:
                 regex_result_cpu_mem = self._get_regex_result_cpu_mem(line)
                 self._assert_regex_result_has_value(regex_result_cpu_mem, line)
                 continue
-            regex_result_date = self._get_regex_result_date(line)
-            self._assert_regex_result_has_value(regex_result_date, line)
+            regex_result_time = self._get_regex_result_time(line)
+            self._assert_regex_result_has_value(regex_result_time, line)
             result.append(
                 self._get_metric_from_regex_results(
                     regex_result_cpu_mem,
-                    regex_result_date,
+                    regex_result_time,
                 )
             )
             regex_result_cpu_mem = None
@@ -48,7 +58,7 @@ class FileParser:
         regex = r"\s*(?P<cpu>\d+(\.\d+)?)\s+(?P<mem>\d+(\.\d+)?)"
         return re.match(regex, line)
 
-    def _get_regex_result_date(self, line: str) -> Optional[re.Match]:
+    def _get_regex_result_time(self, line: str) -> Optional[re.Match]:
         regex = r"(?P<hour>\d+):(?P<minute>\d+):(?P<second>\d+)\.(?P<microsecond>\d+)"
         return re.match(regex, line)
 
@@ -59,34 +69,41 @@ class FileParser:
             raise ValueError(line)
 
     def _get_metric_from_regex_results(
-        self, regex_result_cpu_mem: re.Match, regex_result_date: re.Match
+        self, regex_result_cpu_mem: re.Match, regex_result_time: re.Match
     ) -> Metric:
         return Metric(
             float(regex_result_cpu_mem["cpu"]),
             float(regex_result_cpu_mem["mem"]),
-            self._get_time_from_regex_result_date(regex_result_date),
+            self._get_time_from_regex_result_time(regex_result_time),
         )
 
-    def _get_time_from_regex_result_date(
-        self, regex_result_date: re.Match
-    ) -> datetime.date:
+    def _get_time_from_regex_result_time(
+        self, regex_result_time: re.Match
+    ) -> datetime.time:
         max_microseconds_digits = 6
         return datetime.time(
-            hour=int(regex_result_date["hour"]),
-            minute=int(regex_result_date["minute"]),
-            second=int(regex_result_date["second"]),
-            microsecond=int(regex_result_date["microsecond"][:max_microseconds_digits]),
+            hour=int(regex_result_time["hour"]),
+            minute=int(regex_result_time["minute"]),
+            second=int(regex_result_time["second"]),
+            microsecond=int(regex_result_time["microsecond"][:max_microseconds_digits]),
         )
 
 
-def export_image():
-    mpl.rcParams["lines.linewidth"] = 2
-    mpl.rcParams["lines.linestyle"] = "--"
-    x = [0, 1, 2, 3, 4, 5]
-    y = [2, 3, 4, 8, 1, 2.3]
+def export_image(metrics: List[Metric]):
+    print(f"Init plot {len(metrics)} points")
+    mpl.rcParams["lines.linewidth"] = 0.5
+    x = [str(metric.time) for metric in metrics]
+    y = [metric.cpu for metric in metrics]
     fig, ax = plt.subplots()
-    ax.plot(x, y)
-    fig.savefig("result.png")
+    ax.plot(x, y, marker=".", markersize=2)
+    ax.set_xlabel("Time")
+    ax.set_ylabel("CPU%")
+    plt.grid(color="black", linestyle="-", linewidth=0.1)
+    plt.xticks(range(0, 2020, 100), rotation="vertical")
+    plt.subplots_adjust(bottom=0.4)
+
+    fig.savefig("result.png", dpi=300)
+    # fig.savefig("result.pdf")
 
 
 if __name__ == "__main__":
@@ -95,4 +112,4 @@ if __name__ == "__main__":
     )
     print("Init", pathname)
     metrics = FileParser(pathname).metrics
-    print(metrics)
+    export_image(metrics)
