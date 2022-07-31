@@ -1,6 +1,8 @@
 __pycache__
+/compare-resources/env/
 /compare-resources/results-python.txt
 /compare-resources/results-rust.txt
+/compare-resources/*.png
 /python/env
 /python/error.txt
 /python/result.csv
