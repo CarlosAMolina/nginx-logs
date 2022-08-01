@@ -12,7 +12,6 @@ Files that can be converted:
 - Plain text files. Example: access.log
 - Gz compressed files. Example: access.log.2.gz
 
-
 ## Folders
 
 ### Python
@@ -93,9 +92,11 @@ cargo run /tmp/logs/access.log.2.gz
 cargo test
 ```
 
-### compare-resources
+## Compare resources
 
-### compare-resources requirements
+These are the processes created:
 
-Install the `requirements.txt` file.
+- python: created when the python code is executed.
+- nginx_logs: created when the rust code is executed.
 
+You can analyze the resources required by each process.
