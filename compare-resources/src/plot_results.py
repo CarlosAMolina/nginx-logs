@@ -7,17 +7,7 @@ import re
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
-Metric = collections.namedtuple("Metric", ["cpu", "mem", "time"])
-
-
-# TODO
-def get_seconds_elapsed():
-    """https://stackoverflow.com/questions/35241643/convert-datetime-time-into-datetime-timedelta-in-python-3-4"""
-    a = datetime.datetime(2022, 7, 31, 23, 50, 1)
-    b = datetime.datetime(2022, 7, 31, 23, 54, 11)
-    a2 = a - datetime.datetime.min
-    b2 = b - datetime.datetime.min
-    b2 - a2  # datetime.timedelta(seconds=250)
+Metric = collections.namedtuple("Metric", ["cpu", "mem", "time", "time_elapsed"])
 
 
 class FileParser:
@@ -26,7 +16,9 @@ class FileParser:
 
     @property
     def metrics(self) -> List[Metric]:
-        return self._get_file_content_parsed()
+        result = self._get_file_content_parsed()
+        result = self._get_metrics_set_time_elapsed(result)
+        return self._get_metrics_set_time_elapsed_format(result)
 
     def _get_file_content_parsed(self) -> List[Metric]:
         result = list()
@@ -75,6 +67,7 @@ class FileParser:
             float(regex_result_cpu_mem["cpu"]),
             float(regex_result_cpu_mem["mem"]),
             self._get_time_from_regex_result_time(regex_result_time),
+            0,
         )
 
     def _get_time_from_regex_result_time(
@@ -88,22 +81,46 @@ class FileParser:
             microsecond=int(regex_result_time["microsecond"][:max_microseconds_digits]),
         )
 
+    def _get_metrics_set_time_elapsed(self, metrics: List[Metric]) -> List[Metric]:
+        """https://stackoverflow.com/questions/5259882/subtract-two-times-in-python"""
+        min_datetime = self._get_datetime_from_time(metrics[0].time)
+        return [
+            metric._replace(
+                time_elapsed=self._get_datetime_from_time(metric.time) - min_datetime
+            )
+            for metric in metrics
+        ]
+
+    def _get_datetime_from_time(self, time: datetime.date) -> datetime.datetime:
+        return datetime.datetime.combine(datetime.date.min, time)
+
+    def _get_metrics_set_time_elapsed_format(
+        self, metrics: List[Metric]
+    ) -> List[Metric]:
+        return [
+            metric._replace(
+                time_elapsed="{seconds},{milliseconds}".format(
+                    seconds=metric.time_elapsed.seconds,
+                    milliseconds=str(metric.time_elapsed.microseconds),
+                )
+            )
+            for metric in metrics
+        ]
+
 
 def export_image(metrics: List[Metric]):
     print(f"Init plot {len(metrics)} points")
     mpl.rcParams["lines.linewidth"] = 0.5
-    x = [str(metric.time) for metric in metrics]
+    x = [str(metric.time_elapsed) for metric in metrics]
     y = [metric.cpu for metric in metrics]
     fig, ax = plt.subplots()
     ax.plot(x, y, marker=".", markersize=2)
-    ax.set_xlabel("Time")
-    ax.set_ylabel("CPU%")
+    ax.set_xlabel("Time (s)")
+    ax.set_ylabel("CPU (%)")
     plt.grid(color="black", linestyle="-", linewidth=0.1)
-    plt.xticks(range(0, 2020, 100), rotation="vertical")
-    plt.subplots_adjust(bottom=0.4)
-
+    plt.xticks(range(0, 2020, 150), rotation="vertical")
+    plt.subplots_adjust(bottom=0.3)
     fig.savefig("result.png", dpi=300)
-    # fig.savefig("result.pdf")
 
 
 if __name__ == "__main__":
