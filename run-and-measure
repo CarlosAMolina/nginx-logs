@@ -1,0 +1,22 @@
+measure() {
+    language=$1
+    command=$2
+    if [ ! -z $3 ] ; then
+	command="$command $3"
+    fi
+    logs_path=/tmp/logs
+    echo "[DEBUG] Init language '$language' and command '$command'"
+    echo "[DEBUG] Date: $(date)"
+    valgrind --tool=massif --time-unit=B --massif-out-file=massif.out.%p.$language.heap-only $command $logs_path
+    echo "[DEBUG] Date: $(date)"
+    valgrind --tool=massif --time-unit=B --stacks=yes --massif-out-file=massif.out.%p.$language.add-stacks $command $logs_path
+    echo "[DEBUG] Date: $(date)"
+    valgrind --tool=massif --time-unit=B --pages-as-heap=yes --massif-out-file=massif.out.%p.$language.add-pages-as-heap $command $logs_path
+    echo "[DEBUG] Date: $(date)"
+}
+
+# Rust
+measure rust rust/target/release/nginx_logs
+# Python
+measure python python python/src/main.py
+
