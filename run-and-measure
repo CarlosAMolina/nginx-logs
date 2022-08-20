@@ -1,18 +1,36 @@
+remove_results_file() {
+    logs_pathname=$1
+    csv_pathname="$logs_pathname/result.csv"
+    error_pathname="$logs_pathname/error.txt"
+    echo "[DEBUG] Init remove results: '$csv_pathname', '$error_pathname'"
+    rm $csv_pathname
+    rm $error_pathname
+}
+
 measure() {
     language=$1
     command=$2
     if [ ! -z $3 ] ; then
 	command="$command $3"
     fi
-    logs_path=/tmp/logs
+    time_unit=B
+    logs_pathname=/tmp/logs
     echo "[DEBUG] Init language '$language' and command '$command'"
-    echo "[DEBUG] Date: $(date)"
-    valgrind --tool=massif --time-unit=B --massif-out-file=massif.out.%p.$language.heap-only $command $logs_path
-    echo "[DEBUG] Date: $(date)"
-    valgrind --tool=massif --time-unit=B --stacks=yes --massif-out-file=massif.out.%p.$language.add-stacks $command $logs_path
-    echo "[DEBUG] Date: $(date)"
-    valgrind --tool=massif --time-unit=B --pages-as-heap=yes --massif-out-file=massif.out.%p.$language.add-pages-as-heap $command $logs_path
-    echo "[DEBUG] Date: $(date)"
+    echo "[DEBUG] Init heap only"
+    echo "[DEBUG] Init date: $(date)"
+    valgrind --tool=massif --time-unit=$time_unit --massif-out-file=massif.out.%p.$language.heap-only $command $logs_pathname
+    echo "[DEBUG] End date: $(date)"
+    remove_results_file $logs_pathname
+    echo "[DEBUG] Init add stacks"
+    echo "[DEBUG] Init date: $(date)"
+    valgrind --tool=massif --time-unit=$time_unit --stacks=yes --massif-out-file=massif.out.%p.$language.add-stacks $command $logs_pathname
+    echo "[DEBUG] End date: $(date)"
+    remove_results_file $logs_pathname
+    echo "[DEBUG] Init add pages as heap"
+    echo "[DEBUG] Init date: $(date)"
+    valgrind --tool=massif --time-unit=$time_unit --pages-as-heap=yes --massif-out-file=massif.out.%p.$language.add-pages-as-heap $command $logs_pathname
+    echo "[DEBUG] End date: $(date)"
+    remove_results_file $logs_pathname
 }
 
 # Rust
