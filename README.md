@@ -94,9 +94,20 @@ cargo test
 
 ## Compare resources
 
+### Processes created
+
 These are the processes created:
 
 - python: created when the python code is executed.
 - nginx_logs: created when the rust code is executed.
 
 You can analyze the resources required by each process.
+
+### Measure resources
+
+After compiling the Rust program, run:
+
+```bash
+./run-and-measure
+```
+

@@ -34,8 +34,10 @@ measure() {
     remove_results_file $logs_pathname
 }
 
+# main
 for i in {0..2}
 do
+  echo "[DEBUG] Init measure $i"
   # Rust
   measure rust rust/target/release/nginx_logs
   # Python
