@@ -13,8 +13,9 @@ measure() {
     if [ ! -z $3 ] ; then
 	command="$command $3"
     fi
-    time_unit=B
+    time_unit=ms
     logs_pathname=/tmp/logs
+    remove_results_file $logs_pathname
     echo "[DEBUG] Init language '$language' and command '$command'"
     echo "[DEBUG] Init heap only"
     echo "[DEBUG] Init date: $(date)"
@@ -33,8 +34,11 @@ measure() {
     remove_results_file $logs_pathname
 }
 
-# Rust
-measure rust rust/target/release/nginx_logs
-# Python
-measure python python python/src/main.py
+for i in {0..2}
+do
+  # Rust
+  measure rust rust/target/release/nginx_logs
+  # Python
+  measure python python python/src/main.py
+done
 
