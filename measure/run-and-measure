@@ -35,6 +35,7 @@ measure() {
 }
 
 # main
+cd ..
 for i in {0..2}
 do
   echo "[DEBUG] Init measure $i"

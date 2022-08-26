@@ -94,6 +94,8 @@ cargo test
 
 ## Compare resources
 
+To compare the resources like the CPU and memory required by Python and Rust we can measure them and plot the results.
+
 ### Processes created
 
 These are the processes created:
@@ -108,6 +110,7 @@ You can analyze the resources required by each process.
 After compiling the Rust program, run:
 
 ```bash
+cd measure
 ./run-and-measure
 ```
 
