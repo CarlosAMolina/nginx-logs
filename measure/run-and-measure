@@ -31,7 +31,6 @@ measure() {
     echo "[DEBUG] Init date: $(date)"
     valgrind --tool=massif --time-unit=$time_unit --pages-as-heap=yes --massif-out-file=massif.out.%p.$language.add-pages-as-heap $command $logs_pathname
     echo "[DEBUG] End date: $(date)"
-    remove_results_file $logs_pathname
 }
 
 # main
