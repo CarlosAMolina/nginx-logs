@@ -1,0 +1,29 @@
+desc: --time-unit=ms --stacks=yes --massif-out-file=massif.out.%p
+cmd: foo
+time_unit: ms
+#-----------
+snapshot=0
+#-----------
+time=0
+mem_heap_B=0
+mem_heap_extra_B=0
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=1
+#-----------
+time=6394
+mem_heap_B=1564632
+mem_heap_extra_B=14680
+mem_stacks_B=5968
+heap_tree=peak
+n1: 1 foo
+ n0: 1 foo
+#-----------
+snapshot=2
+#-----------
+time=111626
+mem_heap_B=1540817
+mem_heap_extra_B=14615
+mem_stacks_B=3280
+heap_tree=empty

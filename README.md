@@ -12,7 +12,11 @@ Files that can be converted:
 - Plain text files. Example: access.log
 - Gz compressed files. Example: access.log.2.gz
 
-## Folders
+This project is written in Python and Rust and can measure the resources required by each language and compare them.
+
+## Run the project
+
+You can run the Python or the Rust version.
 
 ### Python
 
@@ -72,6 +76,10 @@ Run at the main path of the project:
 cd rust
 ```
 
+#### Run with Rust and Docker
+
+Follow the steps described for Python but using the Rust folder.
+
 #### Run with Rust
 
 Work with files in a folder:
@@ -94,23 +102,78 @@ cargo test
 
 ## Compare resources
 
-To compare the resources like the CPU and memory required by Python and Rust we can measure them and plot the results.
+To compare the resources like:
 
-### Processes created
+- Storage
+- CPU
+- Memory
 
-These are the processes created:
+Required by Python and Rust we can measure them and plot the results.
 
-- python: created when the python code is executed.
-- nginx_logs: created when the rust code is executed.
+### Measure storage
 
-You can analyze the resources required by each process.
-
-### Measure resources
-
-After compiling the Rust program, run:
+Create the Docker image for Python and Rust (described above) and check the size:
 
 ```bash
-cd measure
-./run-and-measure
+docker images
+```
+
+### Measure memory and CPU resources
+
+First compile the Rust program and change the working directory:
+
+```bash
+cd measure/measure/
+```
+
+#### Measure memory
+
+Run the following script:
+
+```bash
+./measure-memory
+```
+
+#### Measure CPU
+
+First, init the script that saves the measurements:
+
+```bash
+./measure-cpu PROCESS_NAME
+```
+
+These PROCESS_NAME values are:
+
+- python: created when the Python code is executed.
+- nginx_logs: created when the Rust code is executed.
+
+Now you can run the programs that will be monitored.
+
+When you have all the metrics, stop the `measure-cpu` script with `Control + c`.
+
+The values are exported to a file.
+
+### Plot the measurements
+
+Change directory to:
+
+```bash
+cd measure/plot/
+```
+
+Install the requirements.txt file and run:
+
+```bash
+python src/plot_resources.py
+```
+
+The graphs will be exported to files.
+
+### Test plot
+
+Run, in the `measure/plot` folder:
+
+```bash
+python -m unittest discover -s tests
 ```
 
