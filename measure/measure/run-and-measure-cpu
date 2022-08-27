@@ -6,12 +6,8 @@ init_measuring_script() {
     ./measure-cpu $measured_process_name &
 }
 
-init_measured_script() {
-  ./run-test
-}
-
 end_measuring_script() {
-    measuring_process_name=$1
+    measuring_process_name=measure-cpu
     measuring_process_id=$(pgrep -o $measuring_process_name)
     echo "[DEBUG] Measuring process (name/id): $measuring_process_name/$measuring_process_id"
     echo "[DEBUG] Current measuring running processes"
@@ -22,12 +18,39 @@ end_measuring_script() {
     ps -elf | grep $measuring_process_id
 }
 
-# config
-measured_process_name=run-test
-measuring_process_name=measure-cpu
+run_test() {
+    echo "[DEBUG] Init test"
+    measured_process_name=run-test
+    init_measuring_script $measured_process_name
+    ./run-test
+    end_measuring_script
+}
+
+remove_result_files() {
+    echo "[DEBUG] Init remove result files"
+    rm /tmp/logs/error.txt
+    rm /tmp/logs/result.csv
+}
+
+run_rust() {
+    echo "[DEBUG] Init Rust"
+    measured_process_name=nginx_logs
+    init_measuring_script $measured_process_name
+    ../../rust/target/release/nginx_logs /tmp/logs
+    end_measuring_script
+    remove_result_files
+}
+
+run_python() {
+    echo "[DEBUG] Init Python"
+    measured_process_name=python
+    init_measuring_script $measured_process_name
+    python ../../python/src/main.py /tmp/logs
+    end_measuring_script
+    remove_result_files
+}
 
 # main
-init_measuring_script $measured_process_name
-init_measured_script
-end_measuring_script $measuring_process_name
-
+#run_test
+run_rust
+run_python
