@@ -1,4 +1,5 @@
 #TODO
 echo init
-sleep 5m
-echo end
+echo [DEBUG] Init sleep
+sleep 5
+echo [DEBUG] End sleep

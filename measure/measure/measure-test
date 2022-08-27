@@ -1,4 +1,25 @@
 #TODO
-process_to_measure_name=sleep
-process_to_measure_id=$(pgrep $process_to_measure_name)
-echo "Init measure $process_to_measure_id"
+
+# Set measured process info
+measured_process_name=sleep
+
+# Init measuring script
+./measure-cpu $measured_process_name &
+
+# Get measuring process info
+bash_processes_id=($(pgrep bash))
+echo "[DEBUG] bash processes id: ${bash_processes_id[@]}"
+measuring_process_id=${bash_processes_id[-1]}
+echo "[DEBUG] Measuring process (name/id): $measuring_process_name/$measuring_process_id"
+
+# Init measured script
+./run-test
+
+# Stop measuring script
+echo "[DEBUG] Current measuring running processes"
+ps -elf | grep $measuring_process_id
+echo "[DEBUG] Init kill measuring process id: $measuring_process_id"
+kill $measuring_process_id
+echo "[DEBUG] Current measuring running processes"
+ps -elf | grep $measuring_process_id
+

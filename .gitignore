@@ -1,5 +1,6 @@
 __pycache__
 /env
+/measure/measure/results/*.txt
 /measure/plot/src/results/metrics-*.png
 /measure/plot/src/results/metrics-*.txt
 /python/error.txt
