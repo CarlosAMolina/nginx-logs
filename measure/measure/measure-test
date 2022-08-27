@@ -1,4 +1,4 @@
-#TODO
+#!/bin/bash
 
 # Set measured process info
 measured_process_name=sleep

@@ -1,3 +1,5 @@
+#!/bin/bash
+
 remove_results_file() {
     logs_pathname=$1
     csv_pathname="$logs_pathname/result.csv"
