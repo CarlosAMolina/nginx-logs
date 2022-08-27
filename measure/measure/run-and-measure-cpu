@@ -52,5 +52,9 @@ run_and_measure_python() {
 
 # main
 #run_and_measure_test
-run_and_measure_rust
-run_and_measure_python
+for i in {0..2}
+do
+  echo "[DEBUG] Init measure $i"
+  run_and_measure_rust
+  run_and_measure_python
+done

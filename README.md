@@ -136,22 +136,13 @@ Run the following script:
 
 #### Measure CPU
 
-First, init the script that saves the measurements:
+Run the script that executes the Python and Rust programs and saves the measurements:
 
 ```bash
-./measure-cpu PROCESS_NAME
+./run-and-measure-cpu
 ```
 
-These PROCESS_NAME values are:
-
-- python: created when the Python code is executed.
-- nginx_logs: created when the Rust code is executed.
-
-Now you can run the programs that will be monitored.
-
-When you have all the metrics, stop the `measure-cpu` script with `Control + c`.
-
-The values are exported to a file.
+The values are exported to files in the `measure/measure/results` folder.
 
 ### Plot the measurements
 
