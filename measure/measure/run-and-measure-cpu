@@ -1,0 +1,33 @@
+#!/bin/bash
+
+
+init_measuring_script() {
+    measured_process_name=$1
+    ./measure-cpu $measured_process_name &
+}
+
+init_measured_script() {
+  ./run-test
+}
+
+end_measuring_script() {
+    measuring_process_name=$1
+    measuring_process_id=$(pgrep -o $measuring_process_name)
+    echo "[DEBUG] Measuring process (name/id): $measuring_process_name/$measuring_process_id"
+    echo "[DEBUG] Current measuring running processes"
+    ps -elf | grep $measuring_process_id
+    echo "[DEBUG] Init kill measuring process id: $measuring_process_id"
+    kill $measuring_process_id
+    echo "[DEBUG] Current measuring running processes"
+    ps -elf | grep $measuring_process_id
+}
+
+# config
+measured_process_name=run-test
+measuring_process_name=measure-cpu
+
+# main
+init_measuring_script $measured_process_name
+init_measured_script
+end_measuring_script $measuring_process_name
+

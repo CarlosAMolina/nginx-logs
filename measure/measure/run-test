@@ -1,6 +1,5 @@
 #!/bin/bash
 
-echo init
 echo [DEBUG] Init sleep
 sleep 1
 echo [DEBUG] End sleep
