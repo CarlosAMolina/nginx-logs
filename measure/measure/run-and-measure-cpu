@@ -18,7 +18,7 @@ end_measuring_script() {
     ps -elf | grep $measuring_process_id
 }
 
-run_test() {
+run_and_measure_test() {
     echo "[DEBUG] Init test"
     measured_process_name=run-test
     init_measuring_script $measured_process_name
@@ -32,7 +32,7 @@ remove_result_files() {
     rm /tmp/logs/result.csv
 }
 
-run_rust() {
+run_and_measure_rust() {
     echo "[DEBUG] Init Rust"
     measured_process_name=nginx_logs
     init_measuring_script $measured_process_name
@@ -41,7 +41,7 @@ run_rust() {
     remove_result_files
 }
 
-run_python() {
+run_and_measure_python() {
     echo "[DEBUG] Init Python"
     measured_process_name=python
     init_measuring_script $measured_process_name
@@ -51,6 +51,6 @@ run_python() {
 }
 
 # main
-#run_test
-run_rust
-run_python
+#run_and_measure_test
+run_and_measure_rust
+run_and_measure_python
