@@ -1,0 +1,4 @@
+#TODO
+process_to_measure_name=sleep
+process_to_measure_id=$(pgrep $process_to_measure_name)
+echo "Init measure $process_to_measure_id"
