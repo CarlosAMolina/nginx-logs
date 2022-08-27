@@ -1,15 +1,15 @@
 #!/bin/bash
 
-# Set measured process info
-measured_process_name=sleep
+# Set processes info
+measured_process_name=run-test
+measuring_process_name=measure-cpu
 
 # Init measuring script
 ./measure-cpu $measured_process_name &
 
 # Get measuring process info
-bash_processes_id=($(pgrep bash))
-echo "[DEBUG] bash processes id: ${bash_processes_id[@]}"
-measuring_process_id=${bash_processes_id[-1]}
+measuring_processes_id=($(pgrep $measuring_process_name))
+measuring_process_id=${measuring_processes_id[0]}
 echo "[DEBUG] Measuring process (name/id): $measuring_process_name/$measuring_process_id"
 
 # Init measured script

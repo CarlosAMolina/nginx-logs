@@ -2,5 +2,5 @@
 
 echo init
 echo [DEBUG] Init sleep
-sleep 5
+sleep 1
 echo [DEBUG] End sleep
