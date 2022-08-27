@@ -6,7 +6,8 @@ if [ $# -eq 0 ]; then
 fi
 
 process_name=$1
-results_pathname="results/metrics-$1.txt"
+date_and_time=$(date "+%Y%m%d-%H%M%S")
+results_pathname="results/metrics-$process_name-$date_and_time.txt"
 
 echo [DEBUG] Init process name $process_name and results file $results_pathname
 echo [DEBUG] Stop this script manually, for example with Control + C
