@@ -5,65 +5,9 @@ import unittest
 project_main_path = Path(__file__).parent.parent
 sys.path.append(str(project_main_path.joinpath("src")))
 
-import pandas as pd
+import numpy as np
 
 from src import plot_results
-
-
-class TestRound(unittest.TestCase):
-    def test_get_round_up_to_nearest_ten(self):
-        self.assertEqual(20, plot_results.Round().get_round_up_to_nearest_ten(11))
-
-    def test_get_round_up_to_nearest_integer(self) -> int:
-        self.assertEqual(2, plot_results.Round().get_round_up_to_nearest_integer(1.1))
-
-    def test_get_round_up_to_nearest_decimal(self) -> float:
-        self.assertEqual(
-            1.2, plot_results.Round().get_round_up_to_nearest_decimal(1.12)
-        )
-        self.assertEqual(0.9, plot_results.Round().get_round_up_to_nearest_decimal(0.8))
-
-
-class TestXAxisConfigCalculator(unittest.TestCase):
-    def test_max_lim_for_max_value_lower_than_1(self):
-        values = [pd.Series([0, 0.8])]
-        xlims = plot_results.XAxisConfigCalculator("", values)
-        self.assertEqual(0.9, xlims._max_lim)
-
-    def test_min_lim_for_max_value_higher_than_1(self):
-        values = [pd.Series([0, 16.5])]
-        xlims = plot_results.XAxisConfigCalculator("", values)
-        self.assertEqual(17, xlims._max_lim)
-
-
-class TestYAxisConfigCalculator(unittest.TestCase):
-    def test_max_and_min_for_float_values_between_0_dot_02_and_100(self):
-        values = [pd.Series([0, 76.5])]
-        ylims = plot_results.YAxisConfigCalculator("", values)
-        self.assertEqual(-10, ylims._min_lim)
-        self.assertEqual(80, ylims._max_lim)
-
-    def test_max_and_min_for_float_values_higher_than_100_and_label_step_remainder(
-        self,
-    ):
-        values = [pd.Series([0, 124.5])]
-        ylims = plot_results.YAxisConfigCalculator("", values)
-        self.assertEqual(-20, ylims._min_lim)
-        self.assertEqual(140, ylims._max_lim)
-
-    def test_max_and_min_for_float_values_higher_than_100_and_not_label_step_remainder(
-        self,
-    ):
-        values = [pd.Series([0, 134.5])]
-        ylims = plot_results.YAxisConfigCalculator("", values)
-        self.assertEqual(-20, ylims._min_lim)
-        self.assertEqual(140, ylims._max_lim)
-
-    def test_max_and_min_for_float_values_lower_than_0_dot_02(self):
-        values = [pd.Series([0, 0.01])]
-        ylims = plot_results.YAxisConfigCalculator("", values)
-        self.assertEqual(-0.02, ylims._min_lim)
-        self.assertEqual(0.02, ylims._max_lim)
 
 
 class TestRunCompletePlot(unittest.TestCase):
@@ -79,6 +23,18 @@ class TestRunCompletePlot(unittest.TestCase):
         figure = plot_results.Figure(
             axis_labels=plot_results.AxisLabels("Time (s)", "CPU (%)"),
             title="CPU",
+        )
+        x_axis_config = plot_results.AxisConfig(
+            label=figure.axis_labels.x,
+            label_values=np.arange(0, 0.08, 0.01),
+            max_lim=0.07,
+            min_lim=-0.001,
+        )
+        y_axis_config = plot_results.AxisConfig(
+            label=figure.axis_labels.y,
+            label_values=np.arange(0, 70, 10),
+            max_lim=60,
+            min_lim=-1,
         )
         annotate_configs = [
             plot_results.AnnotateConfig(
@@ -101,6 +57,7 @@ class TestRunCompletePlot(unittest.TestCase):
             "/tmp/metrics-ps.png",
             figure,
             plot_results.get_subplots(df_column_names_axis, subplots_config),
+            plot_results.AxisConfigs(x_axis_config, y_axis_config),
         )
 
     def test_plot_massif_metrics(self):
@@ -108,7 +65,19 @@ class TestRunCompletePlot(unittest.TestCase):
         legends = ["Execution 1", "Execution 2", "Execution 3"]
         figure = plot_results.Figure(
             axis_labels=plot_results.AxisLabels("Time (s)", "Mem (B)"),
-            title="Mem (B)",
+            title="Mem",
+        )
+        x_axis_config = plot_results.AxisConfig(
+            label=figure.axis_labels.x,
+            label_values=np.arange(0, 140_000, 20_000),
+            max_lim=120_000,
+            min_lim=-2_500,
+        )
+        y_axis_config = plot_results.AxisConfig(
+            label=figure.axis_labels.y,
+            label_values=np.arange(0, 1.8 * 10**6, 0.2 * 10**6),
+            max_lim=1.6 * 10**6,
+            min_lim=-50_000,
         )
         annotate_configs = [
             plot_results.AnnotateConfig(
@@ -131,6 +100,7 @@ class TestRunCompletePlot(unittest.TestCase):
             "/tmp/metrics-massif.png",
             figure,
             plot_results.get_subplots(df_column_names_axis, subplots_config),
+            plot_results.AxisConfigs(x_axis_config, y_axis_config),
         )
 
 

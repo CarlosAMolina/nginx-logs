@@ -1,6 +1,5 @@
 from pathlib import Path
 from typing import List, NamedTuple, Optional, Tuple, Union
-import math
 import numpy as np
 import pandas as pd
 
@@ -8,22 +7,6 @@ import matplotlib.pyplot as plt
 
 from extractors import extractor
 from transformers import transformer
-
-
-class Round:
-    def get_round_up_to_nearest_ten(self, value: float) -> int:
-        """
-        https://stackoverflow.com/questions/26454649/python-round-up-to-the-nearest-ten
-        """
-        return int(math.ceil(value / 10.0)) * 10
-
-    def get_round_up_to_nearest_integer(self, value: float) -> int:
-        return int(value + 1)
-
-    def get_round_up_to_nearest_decimal(
-        self, value: float, decimal_position: int = 1
-    ) -> float:
-        return int(value * 10**decimal_position + 1) / 10**decimal_position
 
 
 class AxisConfig(NamedTuple):
@@ -34,11 +17,6 @@ class AxisConfig(NamedTuple):
 
 
 class AxisConfigs(NamedTuple):
-    x: AxisConfig
-    y: AxisConfig
-
-
-class AxisConfigsCustom(NamedTuple):
     x: Optional[AxisConfig]
     y: Optional[AxisConfig]
 
@@ -60,118 +38,6 @@ class SubplotsAxisValues:
             func(subplot_y_axis_values)
             for subplot_y_axis_values in self._subplots_axis_values
         )
-
-
-class XAxisConfigCalculator:
-    def __init__(self, axis_label: str, subplots_x_axis_values: List[pd.Series]):
-        self._axis_label = axis_label
-        self._subplots_x_axis_values = SubplotsAxisValues(subplots_x_axis_values)
-        self._round = Round()
-
-    @property
-    def config(self) -> AxisConfig:
-        return AxisConfig(
-            self._axis_label,
-            self._label_values,
-            self._max_lim,
-            self._min_lim,
-        )
-
-    @property
-    def _label_step(self) -> Union[int, float]:
-        if self._subplots_x_axis_values.max_value >= 100_000:
-            return 20_000
-        elif self._subplots_x_axis_values.max_value <= 1:
-            return 0.01
-        return 1
-
-    @property
-    def _label_values(self) -> list:
-        return list(
-            np.arange(
-                self._min_lim, self._max_lim + self._label_step, step=self._label_step
-            )
-        )
-
-    @property
-    def _max_lim(self) -> Union[float, int]:
-        if self._subplots_x_axis_values.max_value <= 0.1:
-            return self._round.get_round_up_to_nearest_decimal(
-                self._subplots_x_axis_values.max_value, decimal_position=2
-            )
-        if self._subplots_x_axis_values.max_value < 1:
-            return self._round.get_round_up_to_nearest_decimal(
-                self._subplots_x_axis_values.max_value
-            )
-        return self._round.get_round_up_to_nearest_integer(
-            self._subplots_x_axis_values.max_value
-        )
-
-    @property
-    def _min_lim(self) -> int:
-        return 0
-
-
-class YAxisConfigCalculator:
-    def __init__(self, axis_label: str, subplots_y_axis_values: List[pd.Series]):
-        self._axis_label = axis_label
-        self._subplots_y_axis_values = SubplotsAxisValues(subplots_y_axis_values)
-        self._round = Round()
-
-    @property
-    def config(self) -> AxisConfig:
-        return AxisConfig(
-            self._axis_label,
-            self._label_values,
-            self._max_lim,
-            self._min_lim,
-        )
-
-    @property
-    def _label_values(self) -> list:
-        return list(
-            np.arange(
-                self._min_lim, self._max_lim + self._label_step, step=self._label_step
-            )
-        )
-
-    @property
-    def _max_lim(self) -> Union[int, float]:
-        if self._subplots_y_axis_values.max_value > 1_500_000:
-            return 1_700_000
-        if self._label_step >= 10:
-            result = self._round.get_round_up_to_nearest_ten(
-                self._subplots_y_axis_values.max_value
-            )
-            if result % self._label_step == 0:
-                return result
-            return self._round.get_round_up_to_nearest_ten(
-                self._subplots_y_axis_values.max_value + 10
-            )
-        return self._label_step
-
-    @property
-    def _min_lim(self) -> Union[int, float]:
-        if self._label_step >= 10:
-            return -1 * self._label_step
-        return -1 * self._label_step
-
-    @property
-    def _diff_max_min_value(self) -> float:
-        return (
-            self._subplots_y_axis_values.max_value
-            - self._subplots_y_axis_values.min_value
-        )
-
-    @property
-    def _label_step(self) -> Union[int, float]:
-        if self._diff_max_min_value < 0.02:
-            return 0.02
-        elif self._diff_max_min_value <= 100:
-            return 10
-        elif self._diff_max_min_value <= 1000:
-            return 20
-        return 500_000
 
 
 class SubplotValues:
@@ -231,7 +97,7 @@ AnnotateConfigs = List[AnnotateConfig]
 class Plot(NamedTuple):
     annotate_configs: AnnotateConfigs
     subplots: Subplots
-    axis_configs: AxisConfigs
+    axis_configs: Optional[AxisConfigs]
     title: Optional[str]
 
 
@@ -254,15 +120,23 @@ class ExportImage:
                 linewidth=subplot.representation_config.linewidth,
             )
         ax.legend()
-        ax.set_xlabel(plot.axis_configs.x.label)
-        ax.set_ylabel(plot.axis_configs.y.label)
-        plt.xticks(plot.axis_configs.x.label_values)
-        plt.yticks(plot.axis_configs.y.label_values)
-        ax.set_xlim(plot.axis_configs.x.min_lim, plot.axis_configs.x.max_lim)
-        ax.set_ylim(bottom=plot.axis_configs.y.min_lim, top=plot.axis_configs.y.max_lim)
-        ax.set_ybound(
-            lower=plot.axis_configs.y.min_lim, upper=plot.axis_configs.y.max_lim
-        )
+        if plot.axis_configs is not None:
+            if plot.axis_configs.x is not None:
+                ax.set_xlabel(plot.axis_configs.x.label)
+                plt.xticks(plot.axis_configs.x.label_values)
+                ax.set_xlim(plot.axis_configs.x.min_lim, plot.axis_configs.x.max_lim)
+                ax.set_xbound(
+                    lower=plot.axis_configs.x.min_lim, upper=plot.axis_configs.x.max_lim
+                )
+            if plot.axis_configs.y is not None:
+                ax.set_ylabel(plot.axis_configs.y.label)
+                plt.yticks(plot.axis_configs.y.label_values)
+                ax.set_ylim(
+                    bottom=plot.axis_configs.y.min_lim, top=plot.axis_configs.y.max_lim
+                )
+                ax.set_ybound(
+                    lower=plot.axis_configs.y.min_lim, upper=plot.axis_configs.y.max_lim
+                )
         subplots_y_axis_values = SubplotsAxisValues(
             [subplot.y_axis_values for subplot in plot.subplots]
         )
@@ -349,39 +223,16 @@ def export_image(
     image_filename: str,
     figure: Figure,
     subplots: Subplots,
-    axis_configs_custom: Optional[AxisConfigsCustom] = None,
+    axis_configs: Optional[AxisConfigs] = None,
 ):
     ExportImage().export_image(
         str(ResultsPath().get_image_pathname(image_filename)),
-        get_plot(annotate_configs, figure, subplots, axis_configs_custom),
-    )
-
-
-def get_plot(
-    annotate_configs: AnnotateConfigs,
-    figure: Figure,
-    subplots: Subplots,
-    axis_configs_custom: Optional[AxisConfigsCustom] = None,
-) -> Plot:
-    x_axis_config = (
-        XAxisConfigCalculator(
-            figure.axis_labels.x, [subplot.x_axis_values for subplot in subplots]
-        ).config
-        if axis_configs_custom is None or axis_configs_custom.x is None
-        else axis_configs_custom.x
-    )
-    y_axis_config = (
-        YAxisConfigCalculator(
-            figure.axis_labels.y, [subplot.y_axis_values for subplot in subplots]
-        ).config
-        if axis_configs_custom is None or axis_configs_custom.y is None
-        else axis_configs_custom.y
-    )
-    return Plot(
-        annotate_configs,
-        subplots,
-        AxisConfigs(x_axis_config, y_axis_config),
-        figure.title,
+        Plot(
+            annotate_configs,
+            subplots,
+            axis_configs,
+            figure.title,
+        ),
     )
 
 
@@ -434,6 +285,13 @@ if __name__ == "__main__":
             axis_labels=AxisLabels("Time (s)", "Mem (kB)"),
             title="Memory heap Rust",
         )
+        # TODO set correct values
+        x_axis_config = AxisConfig(
+            label=figure.axis_labels.x,
+            label_values=[i for i in range(0, 170, 10)],
+            max_lim=155,
+            min_lim=-5,
+        )
         y_axis_config = AxisConfig(
             label=figure.axis_labels.y,
             label_values=[i for i in range(-10, 120, 10)],
@@ -462,7 +320,7 @@ if __name__ == "__main__":
             "/tmp/metrics-massif-rust-heap-only.png",
             figure,
             get_subplots(df_column_names_axis, subplots_config),
-            AxisConfigsCustom(None, y_axis_config),
+            AxisConfigs(x_axis_config, y_axis_config),
         )
 
     def export_rust_add_stacks():
@@ -505,7 +363,7 @@ if __name__ == "__main__":
             "/tmp/metrics-massif-rust-add_stacks.png",
             figure,
             get_subplots(df_column_names_axis, subplots_config),
-            AxisConfigsCustom(x_axis_config, y_axis_config),
+            AxisConfigs(x_axis_config, y_axis_config),
         )
 
     def export_rust_add_pages_as_heap():
@@ -552,7 +410,7 @@ if __name__ == "__main__":
             "/tmp/metrics-massif-rust-add-pages-as-heap.png",
             figure,
             get_subplots(df_column_names_axis, subplots_config),
-            AxisConfigsCustom(x_axis_config, y_axis_config),
+            AxisConfigs(x_axis_config, y_axis_config),
         )
 
     def export_python_heap_only():
@@ -595,7 +453,7 @@ if __name__ == "__main__":
             "/tmp/metrics-massif-python-heap-only.png",
             figure,
             get_subplots(df_column_names_axis, subplots_config),
-            AxisConfigsCustom(x_axis_config, y_axis_config),
+            AxisConfigs(x_axis_config, y_axis_config),
         )
 
     def export_python_add_stacks():
@@ -638,7 +496,7 @@ if __name__ == "__main__":
             "/tmp/metrics-massif-python-add_stacks.png",
             figure,
             get_subplots(df_column_names_axis, subplots_config),
-            AxisConfigsCustom(x_axis_config, y_axis_config),
+            AxisConfigs(x_axis_config, y_axis_config),
         )
 
     def export_python_add_pages_as_heap():
@@ -681,7 +539,7 @@ if __name__ == "__main__":
             "/tmp/metrics-massif-python-add-pages-as-heap.png",
             figure,
             get_subplots(df_column_names_axis, subplots_config),
-            AxisConfigsCustom(x_axis_config, y_axis_config),
+            AxisConfigs(x_axis_config, y_axis_config),
         )
 
     export_rust_heap_only()
