@@ -316,7 +316,7 @@ if __name__ == "__main__":
         )
         export_image(
             annotate_configs,
-            "/tmp/metrics-massif-rust-heap-only.png",
+            "metrics-massif-rust-heap-only.png",
             figure,
             get_subplots(df_column_names_axis, subplots_config),
             AxisConfigs(x_axis_config, y_axis_config),
@@ -359,7 +359,7 @@ if __name__ == "__main__":
         )
         export_image(
             annotate_configs,
-            "/tmp/metrics-massif-rust-add_stacks.png",
+            "metrics-massif-rust-add_stacks.png",
             figure,
             get_subplots(df_column_names_axis, subplots_config),
             AxisConfigs(x_axis_config, y_axis_config),
@@ -406,7 +406,7 @@ if __name__ == "__main__":
         )
         export_image(
             annotate_configs,
-            "/tmp/metrics-massif-rust-add-pages-as-heap.png",
+            "metrics-massif-rust-add-pages-as-heap.png",
             figure,
             get_subplots(df_column_names_axis, subplots_config),
             AxisConfigs(x_axis_config, y_axis_config),
@@ -449,7 +449,7 @@ if __name__ == "__main__":
         )
         export_image(
             annotate_configs,
-            "/tmp/metrics-massif-python-heap-only.png",
+            "metrics-massif-python-heap-only.png",
             figure,
             get_subplots(df_column_names_axis, subplots_config),
             AxisConfigs(x_axis_config, y_axis_config),
@@ -492,7 +492,7 @@ if __name__ == "__main__":
         )
         export_image(
             annotate_configs,
-            "/tmp/metrics-massif-python-add_stacks.png",
+            "metrics-massif-python-add_stacks.png",
             figure,
             get_subplots(df_column_names_axis, subplots_config),
             AxisConfigs(x_axis_config, y_axis_config),
@@ -535,15 +535,15 @@ if __name__ == "__main__":
         )
         export_image(
             annotate_configs,
-            "/tmp/metrics-massif-python-add-pages-as-heap.png",
+            "metrics-massif-python-add-pages-as-heap.png",
             figure,
             get_subplots(df_column_names_axis, subplots_config),
             AxisConfigs(x_axis_config, y_axis_config),
         )
 
     export_rust_heap_only()
-    # export_rust_add_stacks()
-    # export_rust_add_pages_as_heap()
-    # export_python_heap_only()
-    # export_python_add_stacks()
-    # export_python_add_pages_as_heap()
+    export_rust_add_stacks()
+    export_rust_add_pages_as_heap()
+    export_python_heap_only()
+    export_python_add_stacks()
+    export_python_add_pages_as_heap()
