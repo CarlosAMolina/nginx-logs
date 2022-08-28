@@ -33,21 +33,21 @@ remove_result_files() {
 }
 
 run_and_measure_rust() {
+    remove_result_files
     echo "[DEBUG] Init Rust"
     measured_process_name=nginx_logs
     init_measuring_script $measured_process_name
     ../../rust/target/release/nginx_logs /tmp/logs
     end_measuring_script
-    remove_result_files
 }
 
 run_and_measure_python() {
+    remove_result_files
     echo "[DEBUG] Init Python"
     measured_process_name=python
     init_measuring_script $measured_process_name
     python ../../python/src/main.py /tmp/logs
     end_measuring_script
-    remove_result_files
 }
 
 # main
