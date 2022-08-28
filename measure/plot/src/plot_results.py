@@ -274,9 +274,9 @@ if __name__ == "__main__":
         subplots_config = SubplotsConfig(
             metrics_pathnames=get_metrics_pathname(
                 [
-                    "metrics-nginx_logs-20220828-151206.txt",
-                    "metrics-nginx_logs-20220828-151218.txt",
-                    "metrics-nginx_logs-20220828-151229.txt",
+                    "metrics-cpu-nginx_logs-20220828-174527.txt",
+                    "metrics-cpu-nginx_logs-20220828-174528.txt",
+                    "metrics-cpu-nginx_logs-20220828-174530.txt",
                 ]
             ),
             legends=legends,
@@ -319,9 +319,9 @@ if __name__ == "__main__":
         subplots_config = SubplotsConfig(
             metrics_pathnames=get_metrics_pathname(
                 [
-                    "metrics-python-20220828-151207.txt",
-                    "metrics-python-20220828-151219.txt",
-                    "metrics-python-20220828-151230.txt",
+                    "metrics-cpu-python-20220828-151207.txt",
+                    "metrics-cpu-python-20220828-151219.txt",
+                    "metrics-cpu-python-20220828-151230.txt",
                 ]
             ),
             legends=legends,
