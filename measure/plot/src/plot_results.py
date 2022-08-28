@@ -247,7 +247,7 @@ if __name__ == "__main__":
         metrics_path = this_script_path.joinpath("../../measure/results/")
         return [str(metrics_path.joinpath(filename)) for filename in metrics_filenames]
 
-    def export_rust_cpu():
+    def export_cpu_rust():
         df_column_names_axis = DfColumnNamesAxis("time_elapsed", "cpu_percentage")
         figure = Figure(
             axis_labels=AxisLabels("Time (s)", "CPU (%)"),
@@ -268,15 +268,15 @@ if __name__ == "__main__":
         annotate_configs = [
             AnnotateConfig(
                 xy=(0.54, 55),
-                xytext=(0.6, 0.95),
+                xytext=(0.545, 0.95),
             )
         ]
         subplots_config = SubplotsConfig(
             metrics_pathnames=get_metrics_pathname(
                 [
-                    "metrics-cpu-nginx_logs-20220828-174527.txt",
-                    "metrics-cpu-nginx_logs-20220828-174528.txt",
-                    "metrics-cpu-nginx_logs-20220828-174530.txt",
+                    "metrics-cpu-nginx_logs-20220828-182401.txt",
+                    "metrics-cpu-nginx_logs-20220828-182501.txt",
+                    "metrics-cpu-nginx_logs-20220828-182514.txt",
                 ]
             ),
             legends=legends,
@@ -292,7 +292,7 @@ if __name__ == "__main__":
             AxisConfigs(x_axis_config, y_axis_config),
         )
 
-    def export_python_cpu():
+    def export_cpu_python():
         df_column_names_axis = DfColumnNamesAxis("time_elapsed", "cpu_percentage")
         figure = Figure(
             axis_labels=AxisLabels("Time (s)", "CPU (%)"),
@@ -306,22 +306,22 @@ if __name__ == "__main__":
         )
         y_axis_config = AxisConfig(
             label=figure.axis_labels.y,
-            label_values=np.arange(0, 150, 20),
-            max_lim=140,
+            label_values=np.arange(0, 180, 20),
+            max_lim=170,
             min_lim=-5,
         )
         annotate_configs = [
             AnnotateConfig(
-                xy=(1.9, 130),
-                xytext=(0.3, 0.95),
+                xy=(1.9, 165),
+                xytext=(0.3, 0.9),
             )
         ]
         subplots_config = SubplotsConfig(
             metrics_pathnames=get_metrics_pathname(
                 [
-                    "metrics-cpu-python-20220828-151207.txt",
-                    "metrics-cpu-python-20220828-151219.txt",
-                    "metrics-cpu-python-20220828-151230.txt",
+                    "metrics-cpu-python-20220828-182326.txt",
+                    "metrics-cpu-python-20220828-182337.txt",
+                    "metrics-cpu-python-20220828-182348.txt",
                 ]
             ),
             legends=legends,
@@ -337,7 +337,7 @@ if __name__ == "__main__":
             AxisConfigs(x_axis_config, y_axis_config),
         )
 
-    def export_rust_heap_only():
+    def export_memory_rust_heap_only():
         df_column_names_axis = DfColumnNamesAxis("time_s", "mem_total_kb")
         figure = Figure(
             axis_labels=AxisLabels("Time (s)", "Mem (kB)"),
@@ -376,13 +376,13 @@ if __name__ == "__main__":
         )
         export_image(
             annotate_configs,
-            "metrics-massif-rust-heap-only.png",
+            "metrics-memory-massif-rust-heap-only.png",
             figure,
             get_subplots(df_column_names_axis, subplots_config),
             AxisConfigs(x_axis_config, y_axis_config),
         )
 
-    def export_rust_add_stacks():
+    def export_memory_rust_add_stacks():
         df_column_names_axis = DfColumnNamesAxis("time_s", "mem_total_kb")
         figure = Figure(
             axis_labels=AxisLabels("Time (s)", "Mem (kB)"),
@@ -421,13 +421,13 @@ if __name__ == "__main__":
         )
         export_image(
             annotate_configs,
-            "metrics-massif-rust-add_stacks.png",
+            "metrics-memory-massif-rust-add_stacks.png",
             figure,
             get_subplots(df_column_names_axis, subplots_config),
             AxisConfigs(x_axis_config, y_axis_config),
         )
 
-    def export_rust_add_pages_as_heap():
+    def export_memory_rust_add_pages_as_heap():
         df_column_names_axis = DfColumnNamesAxis("time_s", "mem_total_mb")
         figure = Figure(
             axis_labels=AxisLabels("Time (s)", "Mem (MB)"),
@@ -470,13 +470,13 @@ if __name__ == "__main__":
         )
         export_image(
             annotate_configs,
-            "metrics-massif-rust-add-pages-as-heap.png",
+            "metrics-memory-massif-rust-add-pages-as-heap.png",
             figure,
             get_subplots(df_column_names_axis, subplots_config),
             AxisConfigs(x_axis_config, y_axis_config),
         )
 
-    def export_python_heap_only():
+    def export_memory_python_heap_only():
         df_column_names_axis = DfColumnNamesAxis("time_s", "mem_total_mb")
         figure = Figure(
             axis_labels=AxisLabels("Time (s)", "Mem (MB)"),
@@ -515,13 +515,13 @@ if __name__ == "__main__":
         )
         export_image(
             annotate_configs,
-            "metrics-massif-python-heap-only.png",
+            "metrics-memory-massif-python-heap-only.png",
             figure,
             get_subplots(df_column_names_axis, subplots_config),
             AxisConfigs(x_axis_config, y_axis_config),
         )
 
-    def export_python_add_stacks():
+    def export_memory_python_add_stacks():
         df_column_names_axis = DfColumnNamesAxis("time_minute", "mem_total_mb")
         figure = Figure(
             axis_labels=AxisLabels("Time (min)", "Mem (MB)"),
@@ -560,13 +560,13 @@ if __name__ == "__main__":
         )
         export_image(
             annotate_configs,
-            "metrics-massif-python-add_stacks.png",
+            "metrics-memory-massif-python-add_stacks.png",
             figure,
             get_subplots(df_column_names_axis, subplots_config),
             AxisConfigs(x_axis_config, y_axis_config),
         )
 
-    def export_python_add_pages_as_heap():
+    def export_memory_python_add_pages_as_heap():
         df_column_names_axis = DfColumnNamesAxis("time_s", "mem_total_mb")
         figure = Figure(
             axis_labels=AxisLabels("Time (s)", "Mem (MB)"),
@@ -605,17 +605,17 @@ if __name__ == "__main__":
         )
         export_image(
             annotate_configs,
-            "metrics-massif-python-add-pages-as-heap.png",
+            "metrics-memory-massif-python-add-pages-as-heap.png",
             figure,
             get_subplots(df_column_names_axis, subplots_config),
             AxisConfigs(x_axis_config, y_axis_config),
         )
 
-    export_rust_cpu()
-    # export_python_cpu()
-    # export_rust_heap_only()
-    # export_rust_add_stacks()
-    # export_rust_add_pages_as_heap()
-    # export_python_heap_only()
-    # export_python_add_stacks()
-    # export_python_add_pages_as_heap()
+    export_cpu_rust()
+    export_cpu_python()
+    export_memory_rust_heap_only()
+    export_memory_rust_add_stacks()
+    export_memory_rust_add_pages_as_heap()
+    export_memory_python_heap_only()
+    export_memory_python_add_stacks()
+    export_memory_python_add_pages_as_heap()
