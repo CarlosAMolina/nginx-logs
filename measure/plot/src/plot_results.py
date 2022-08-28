@@ -237,6 +237,13 @@ def export_image(
 
 
 if __name__ == "__main__":
+    legends = ["Execution 1", "Execution 2", "Execution 3"]
+
+    def get_metrics_pathname(metrics_filenames: List[str]) -> List[str]:
+        this_script_path = Path(__file__).parent.absolute()
+        metrics_path = this_script_path.joinpath("../../measure/results/")
+        return [str(metrics_path.joinpath(filename)) for filename in metrics_filenames]
+
     # df_column_names_axis = DfColumnNamesAxis("time_elapsed", "cpu_percentage")
     # legends = ["Execution 1", "Execution 2", "Execution 3"]
     # axis_label = AxisLabels("Time (s)", "CPU (%)")
@@ -276,9 +283,6 @@ if __name__ == "__main__":
     #    get_subplots(df_column_names_axis, subplots_config),
     # )
 
-    legends = ["Execution 1", "Execution 2", "Execution 3"]
-    metrics_pathname = "/tmp/20220825-massif/"
-
     def export_rust_heap_only():
         df_column_names_axis = DfColumnNamesAxis("time_s", "mem_total_kb")
         figure = Figure(
@@ -304,11 +308,13 @@ if __name__ == "__main__":
             )
         ]
         subplots_config = SubplotsConfig(
-            metrics_pathnames=[
-                f"{metrics_pathname}massif.out.1616.rust.heap-only",
-                f"{metrics_pathname}massif.out.1827.rust.heap-only",
-                f"{metrics_pathname}massif.out.1984.rust.heap-only",
-            ],
+            metrics_pathnames=get_metrics_pathname(
+                [
+                    "massif.out.1616.rust.heap-only",
+                    "massif.out.1827.rust.heap-only",
+                    "massif.out.1984.rust.heap-only",
+                ]
+            ),
             legends=legends,
             colors=["b", "limegreen", "r"],
             markers=["o", "o", "o"],
@@ -347,11 +353,13 @@ if __name__ == "__main__":
             ),
         ]
         subplots_config = SubplotsConfig(
-            metrics_pathnames=[
-                f"{metrics_pathname}massif.out.1624.rust.add-stacks",
-                f"{metrics_pathname}massif.out.1832.rust.add-stacks",
-                f"{metrics_pathname}massif.out.1990.rust.add-stacks",
-            ],
+            metrics_pathnames=get_metrics_pathname(
+                [
+                    "massif.out.1624.rust.add-stacks",
+                    "massif.out.1832.rust.add-stacks",
+                    "massif.out.1990.rust.add-stacks",
+                ]
+            ),
             legends=legends,
             colors=["b", "limegreen", "r"],
             markers=["o", "o", "o"],
@@ -394,11 +402,13 @@ if __name__ == "__main__":
             ),
         ]
         subplots_config = SubplotsConfig(
-            metrics_pathnames=[
-                f"{metrics_pathname}massif.out.1638.rust.add-pages-as-heap",
-                f"{metrics_pathname}massif.out.1842.rust.add-pages-as-heap",
-                f"{metrics_pathname}massif.out.1998.rust.add-pages-as-heap",
-            ],
+            metrics_pathnames=get_metrics_pathname(
+                [
+                    "massif.out.1638.rust.add-pages-as-heap",
+                    "massif.out.1842.rust.add-pages-as-heap",
+                    "massif.out.1998.rust.add-pages-as-heap",
+                ]
+            ),
             legends=legends,
             colors=["b", "limegreen", "r"],
             markers=["o", "o", "o"],
@@ -437,11 +447,13 @@ if __name__ == "__main__":
             ),
         ]
         subplots_config = SubplotsConfig(
-            metrics_pathnames=[
-                f"{metrics_pathname}massif.out.1645.python.heap-only",
-                f"{metrics_pathname}massif.out.1849.python.heap-only",
-                f"{metrics_pathname}massif.out.2008.python.heap-only",
-            ],
+            metrics_pathnames=get_metrics_pathname(
+                [
+                    "massif.out.1645.python.heap-only",
+                    "massif.out.1849.python.heap-only",
+                    "massif.out.2008.python.heap-only",
+                ]
+            ),
             legends=legends,
             colors=["b", "limegreen", "r"],
             markers=["o", "o", "o"],
@@ -480,11 +492,13 @@ if __name__ == "__main__":
             ),
         ]
         subplots_config = SubplotsConfig(
-            metrics_pathnames=[
-                f"{metrics_pathname}massif.out.1654.python.add-stacks",
-                f"{metrics_pathname}massif.out.1858.python.add-stacks",
-                f"{metrics_pathname}massif.out.2015.python.add-stacks",
-            ],
+            metrics_pathnames=get_metrics_pathname(
+                [
+                    "massif.out.1654.python.add-stacks",
+                    "massif.out.1858.python.add-stacks",
+                    "massif.out.2015.python.add-stacks",
+                ]
+            ),
             legends=legends,
             colors=["b", "limegreen", "r"],
             markers=["o", "o", "o"],
@@ -523,11 +537,13 @@ if __name__ == "__main__":
             ),
         ]
         subplots_config = SubplotsConfig(
-            metrics_pathnames=[
-                f"{metrics_pathname}massif.out.1814.python.add-pages-as-heap",
-                f"{metrics_pathname}massif.out.1975.python.add-pages-as-heap",
-                f"{metrics_pathname}massif.out.2125.python.add-pages-as-heap",
-            ],
+            metrics_pathnames=get_metrics_pathname(
+                [
+                    "massif.out.1814.python.add-pages-as-heap",
+                    "massif.out.1975.python.add-pages-as-heap",
+                    "massif.out.2125.python.add-pages-as-heap",
+                ]
+            ),
             legends=legends,
             colors=["b", "limegreen", "r"],
             markers=["o", "o", "o"],
