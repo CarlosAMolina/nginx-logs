@@ -1,4 +1,4 @@
-from typing import Iterator, List, Optional
+from typing import Iterator, List
 import re
 
 import pandas as pd
@@ -24,16 +24,19 @@ class LineParser:
     @property
     def as_dict(self) -> dict:
         return {
+            "cpu_id": self._regex_result_values["cpu_id"],
             "cpu_percentage": self._regex_result_values["cpu"],
             "mem_percentage": self._regex_result_values["mem"],
             "time": self._regex_result_values["date"],
         }
 
     @property
-    def _regex_result_values(self) -> Optional[re.Match]:
+    def _regex_result_values(self) -> re.Match:
         regex = re.compile(
             r"""
         \s*
+        (?P<cpu_id>\d+)
+        \s+
         (?P<cpu>\d+(\.\d+)?)
         \s+
         (?P<mem>\d+(\.\d+)?)
@@ -42,7 +45,9 @@ class LineParser:
         """,
             re.VERBOSE,
         )
-        return re.match(regex, self._line)
+        result = re.match(regex, self._line)
+        assert result is not None
+        return result
 
 
 class FileParser:
