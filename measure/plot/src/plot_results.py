@@ -247,6 +247,51 @@ if __name__ == "__main__":
         metrics_path = this_script_path.joinpath("../../measure/results/")
         return [str(metrics_path.joinpath(filename)) for filename in metrics_filenames]
 
+    def export_rust_cpu():
+        df_column_names_axis = DfColumnNamesAxis("time_elapsed", "cpu_percentage")
+        figure = Figure(
+            axis_labels=AxisLabels("Time (s)", "CPU (%)"),
+            title="CPU Rust",
+        )
+        x_axis_config = AxisConfig(
+            label=figure.axis_labels.x,
+            label_values=np.arange(0, 0.7, 0.1),
+            max_lim=0.6,
+            min_lim=-0.01,
+        )
+        y_axis_config = AxisConfig(
+            label=figure.axis_labels.y,
+            label_values=np.arange(0, 70, 10),
+            max_lim=60,
+            min_lim=-1,
+        )
+        annotate_configs = [
+            AnnotateConfig(
+                xy=(0.54, 55),
+                xytext=(0.6, 0.95),
+            )
+        ]
+        subplots_config = SubplotsConfig(
+            metrics_pathnames=get_metrics_pathname(
+                [
+                    "metrics-nginx_logs-20220828-151206.txt",
+                    "metrics-nginx_logs-20220828-151218.txt",
+                    "metrics-nginx_logs-20220828-151229.txt",
+                ]
+            ),
+            legends=legends,
+            colors=["b", "limegreen", "r"],
+            markers=["o", "o", "o"],
+            markerssize=[4.5, 2.5, 0.7],
+        )
+        export_image(
+            annotate_configs,
+            "metrics-cpu-rust.png",
+            figure,
+            get_subplots(df_column_names_axis, subplots_config),
+            AxisConfigs(x_axis_config, y_axis_config),
+        )
+
     def export_python_cpu():
         df_column_names_axis = DfColumnNamesAxis("time_elapsed", "cpu_percentage")
         figure = Figure(
@@ -255,13 +300,13 @@ if __name__ == "__main__":
         )
         x_axis_config = AxisConfig(
             label=figure.axis_labels.x,
-            label_values=[i for i in range(0, 12, 1)],
+            label_values=np.arange(0, 12, 1),
             max_lim=11,
             min_lim=-0.3,
         )
         y_axis_config = AxisConfig(
             label=figure.axis_labels.y,
-            label_values=[i for i in range(0, 150, 20)],
+            label_values=np.arange(0, 150, 20),
             max_lim=140,
             min_lim=-5,
         )
@@ -292,27 +337,6 @@ if __name__ == "__main__":
             AxisConfigs(x_axis_config, y_axis_config),
         )
 
-    # metrics_pathname = "/tmp/metricas/metrics-rust/"
-    # subplots_config = SubplotsConfig(
-    #    metrics_pathnames=[
-    #        f"{metrics_pathname}metrics-nginx_logs-1.txt",
-    #        f"{metrics_pathname}metrics-nginx_logs-2.txt",
-    #        f"{metrics_pathname}metrics-nginx_logs-3.txt",
-    #    ],
-    #    legends=legends,
-    #    colors=["b", "limegreen", "r"],
-    #    markers=["o", "o", "o"],
-    #    markerssize=[4.5, 3, 2],
-    # )
-    # export_image(
-    #    "metrics-rust.png",
-    #    axis_label,
-    #    get_subplots(df_column_names_axis, subplots_config),
-    # )
-    # ../../measure/results/metrics-nginx_logs-20220828-151206.txt
-    # ../../measure/results/metrics-nginx_logs-20220828-151218.txt
-    # ../../measure/results/metrics-nginx_logs-20220828-151229.txt
-
     def export_rust_heap_only():
         df_column_names_axis = DfColumnNamesAxis("time_s", "mem_total_kb")
         figure = Figure(
@@ -321,13 +345,13 @@ if __name__ == "__main__":
         )
         x_axis_config = AxisConfig(
             label=figure.axis_labels.x,
-            label_values=[i for i in range(0, 10, 1)],
+            label_values=np.arange(0, 10, 1),
             max_lim=9,
             min_lim=-0.5,
         )
         y_axis_config = AxisConfig(
             label=figure.axis_labels.y,
-            label_values=[i for i in range(-10, 120, 10)],
+            label_values=np.arange(-10, 120, 10),
             max_lim=110,
             min_lim=-5,
         )
@@ -366,13 +390,13 @@ if __name__ == "__main__":
         )
         x_axis_config = AxisConfig(
             label=figure.axis_labels.x,
-            label_values=[i for i in range(0, 170, 10)],
+            label_values=np.arange(0, 170, 10),
             max_lim=155,
             min_lim=-5,
         )
         y_axis_config = AxisConfig(
             label=figure.axis_labels.y,
-            label_values=[i for i in range(-10, 120, 10)],
+            label_values=np.arange(-10, 120, 10),
             max_lim=110,
             min_lim=-5,
         )
@@ -587,7 +611,8 @@ if __name__ == "__main__":
             AxisConfigs(x_axis_config, y_axis_config),
         )
 
-    export_python_cpu()
+    export_rust_cpu()
+    # export_python_cpu()
     # export_rust_heap_only()
     # export_rust_add_stacks()
     # export_rust_add_pages_as_heap()
