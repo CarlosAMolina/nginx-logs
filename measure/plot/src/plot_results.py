@@ -253,28 +253,24 @@ if __name__ == "__main__":
             axis_labels=AxisLabels("Time (s)", "CPU (%)"),
             title="CPU Python",
         )
-        # TODO x_axis_config = AxisConfig(
-        # TODO     label=figure.axis_labels.x,
-        # TODO     label_values=[i for i in range(0, 10, 1)],
-        # TODO     max_lim=9,
-        # TODO     min_lim=-0.5,
-        # TODO )
-        # TODO y_axis_config = AxisConfig(
-        # TODO     label=figure.axis_labels.y,
-        # TODO     label_values=[i for i in range(-10, 120, 10)],
-        # TODO     max_lim=110,
-        # TODO     min_lim=-5,
-        # TODO )
-        # todo annotate_configs = [
-        # todo     AnnotateConfig(
-        # todo         xy=(0.85, 100),
-        # TODO         xytext=(0.15, 0.8),
-        # TODO     )
-        # TODO ]
-        # TODO
-        x_axis_config = None
-        y_axis_config = None
-        annotate_configs = None
+        x_axis_config = AxisConfig(
+            label=figure.axis_labels.x,
+            label_values=[i for i in range(0, 12, 1)],
+            max_lim=11,
+            min_lim=-0.3,
+        )
+        y_axis_config = AxisConfig(
+            label=figure.axis_labels.y,
+            label_values=[i for i in range(0, 150, 20)],
+            max_lim=140,
+            min_lim=-5,
+        )
+        annotate_configs = [
+            AnnotateConfig(
+                xy=(1.9, 130),
+                xytext=(0.3, 0.95),
+            )
+        ]
         subplots_config = SubplotsConfig(
             metrics_pathnames=get_metrics_pathname(
                 [
