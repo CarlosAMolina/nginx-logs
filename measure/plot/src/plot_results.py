@@ -285,12 +285,11 @@ if __name__ == "__main__":
             axis_labels=AxisLabels("Time (s)", "Mem (kB)"),
             title="Memory heap Rust",
         )
-        # TODO set correct values
         x_axis_config = AxisConfig(
             label=figure.axis_labels.x,
-            label_values=[i for i in range(0, 170, 10)],
-            max_lim=155,
-            min_lim=-5,
+            label_values=[i for i in range(0, 10, 1)],
+            max_lim=9,
+            min_lim=-0.5,
         )
         y_axis_config = AxisConfig(
             label=figure.axis_labels.y,
@@ -543,8 +542,8 @@ if __name__ == "__main__":
         )
 
     export_rust_heap_only()
-    export_rust_add_stacks()
-    export_rust_add_pages_as_heap()
-    export_python_heap_only()
-    export_python_add_stacks()
-    export_python_add_pages_as_heap()
+    # export_rust_add_stacks()
+    # export_rust_add_pages_as_heap()
+    # export_python_heap_only()
+    # export_python_add_stacks()
+    # export_python_add_pages_as_heap()
