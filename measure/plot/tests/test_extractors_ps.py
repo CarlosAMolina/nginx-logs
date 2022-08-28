@@ -57,7 +57,7 @@ class TestFileParser(unittest.TestCase):
                     2: "0.0",
                     3: "57.0",
                     4: "58.0",
-                    5: "58.0",
+                    5: "55.0",
                 },
                 "mem_percentage": {
                     0: "0.0",

@@ -76,6 +76,10 @@ class TestRunCompletePlot(unittest.TestCase):
             "time_elapsed", "cpu_percentage"
         )
         legends = ["Execution 1", "Execution 2", "Execution 3"]
+        figure = plot_results.Figure(
+            axis_labels=plot_results.AxisLabels("Time (s)", "CPU (%)"),
+            title="CPU",
+        )
         annotate_configs = [
             plot_results.AnnotateConfig(
                 xy=(0.05, 55),
@@ -95,13 +99,17 @@ class TestRunCompletePlot(unittest.TestCase):
         plot_results.export_image(
             annotate_configs,
             "/tmp/metrics-ps.png",
-            plot_results.Figure(plot_results.AxisLabels("Time (s)", "CPU (%)")),
+            figure,
             plot_results.get_subplots(df_column_names_axis, subplots_config),
         )
 
     def test_plot_massif_metrics(self):
         df_column_names_axis = plot_results.DfColumnNamesAxis("time", "mem_total")
         legends = ["Execution 1", "Execution 2", "Execution 3"]
+        figure = plot_results.Figure(
+            axis_labels=plot_results.AxisLabels("Time (s)", "Mem (B)"),
+            title="Mem (B)",
+        )
         annotate_configs = [
             plot_results.AnnotateConfig(
                 xy=(6_000, 1.55 * 10**6),
@@ -121,7 +129,7 @@ class TestRunCompletePlot(unittest.TestCase):
         plot_results.export_image(
             annotate_configs,
             "/tmp/metrics-massif.png",
-            plot_results.Figure(plot_results.AxisLabels("Time (s)", "Mem (B)")),
+            figure,
             plot_results.get_subplots(df_column_names_axis, subplots_config),
         )
 
