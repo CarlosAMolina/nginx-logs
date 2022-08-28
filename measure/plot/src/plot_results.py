@@ -95,7 +95,7 @@ AnnotateConfigs = List[AnnotateConfig]
 
 
 class Plot(NamedTuple):
-    annotate_configs: AnnotateConfigs
+    annotate_configs: Optional[AnnotateConfigs]
     subplots: Subplots
     axis_configs: Optional[AxisConfigs]
     title: Optional[str]
@@ -140,17 +140,20 @@ class ExportImage:
         subplots_y_axis_values = SubplotsAxisValues(
             [subplot.y_axis_values for subplot in plot.subplots]
         )
-        for annotate_config in plot.annotate_configs:
-            ax.annotate(
-                f"Max {subplots_y_axis_values.max_value}",
-                xy=annotate_config.xy,
-                xycoords="data",
-                xytext=annotate_config.xytext,
-                textcoords="axes fraction",
-                arrowprops=dict(facecolor="black", shrink=0.05, width=2, headwidth=8),
-                horizontalalignment="left",
-                verticalalignment="top",
-            )
+        if plot.annotate_configs is not None:
+            for annotate_config in plot.annotate_configs:
+                ax.annotate(
+                    f"Max {subplots_y_axis_values.max_value}",
+                    xy=annotate_config.xy,
+                    xycoords="data",
+                    xytext=annotate_config.xytext,
+                    textcoords="axes fraction",
+                    arrowprops=dict(
+                        facecolor="black", shrink=0.05, width=2, headwidth=8
+                    ),
+                    horizontalalignment="left",
+                    verticalalignment="top",
+                )
         if plot.title is not None:
             plt.title(plot.title)
         plt.grid(color="black", linestyle="-", linewidth=0.1)
@@ -219,7 +222,7 @@ def get_df_from_file(metrics_pathname: str) -> pd.DataFrame:
 
 
 def export_image(
-    annotate_configs: AnnotateConfigs,
+    annotate_configs: Optional[AnnotateConfigs],
     image_filename: str,
     figure: Figure,
     subplots: Subplots,
@@ -244,26 +247,54 @@ if __name__ == "__main__":
         metrics_path = this_script_path.joinpath("../../measure/results/")
         return [str(metrics_path.joinpath(filename)) for filename in metrics_filenames]
 
-    # df_column_names_axis = DfColumnNamesAxis("time_elapsed", "cpu_percentage")
-    # legends = ["Execution 1", "Execution 2", "Execution 3"]
-    # axis_label = AxisLabels("Time (s)", "CPU (%)")
-    # metrics_pathname = "/tmp/metricas/metrics-python/"
-    # subplots_config = SubplotsConfig(
-    #    metrics_pathnames=[
-    #        f"{metrics_pathname}metrics-python-1.txt",
-    #        f"{metrics_pathname}metrics-python-2.txt",
-    #        f"{metrics_pathname}metrics-python-3.txt",
-    #    ],
-    #    legends=legends,
-    #    colors=["b", "limegreen", "r"],
-    #    markers=["o", "o", "o"],
-    #    markerssize=[4.5, 2.5, 0.7],
-    # )
-    # export_image(
-    #    "metrics-rust.png",
-    #    axis_label,
-    #    get_subplots(df_column_names_axis, subplots_config),
-    # )
+    def export_python_cpu():
+        df_column_names_axis = DfColumnNamesAxis("time_elapsed", "cpu_percentage")
+        figure = Figure(
+            axis_labels=AxisLabels("Time (s)", "CPU (%)"),
+            title="CPU Python",
+        )
+        # TODO x_axis_config = AxisConfig(
+        # TODO     label=figure.axis_labels.x,
+        # TODO     label_values=[i for i in range(0, 10, 1)],
+        # TODO     max_lim=9,
+        # TODO     min_lim=-0.5,
+        # TODO )
+        # TODO y_axis_config = AxisConfig(
+        # TODO     label=figure.axis_labels.y,
+        # TODO     label_values=[i for i in range(-10, 120, 10)],
+        # TODO     max_lim=110,
+        # TODO     min_lim=-5,
+        # TODO )
+        # todo annotate_configs = [
+        # todo     AnnotateConfig(
+        # todo         xy=(0.85, 100),
+        # TODO         xytext=(0.15, 0.8),
+        # TODO     )
+        # TODO ]
+        # TODO
+        x_axis_config = None
+        y_axis_config = None
+        annotate_configs = None
+        subplots_config = SubplotsConfig(
+            metrics_pathnames=get_metrics_pathname(
+                [
+                    "metrics-python-20220828-151207.txt",
+                    "metrics-python-20220828-151219.txt",
+                    "metrics-python-20220828-151230.txt",
+                ]
+            ),
+            legends=legends,
+            colors=["b", "limegreen", "r"],
+            markers=["o", "o", "o"],
+            markerssize=[4.5, 2.5, 0.7],
+        )
+        export_image(
+            annotate_configs,
+            "metrics-cpu-python.png",
+            figure,
+            get_subplots(df_column_names_axis, subplots_config),
+            AxisConfigs(x_axis_config, y_axis_config),
+        )
 
     # metrics_pathname = "/tmp/metricas/metrics-rust/"
     # subplots_config = SubplotsConfig(
@@ -282,6 +313,9 @@ if __name__ == "__main__":
     #    axis_label,
     #    get_subplots(df_column_names_axis, subplots_config),
     # )
+    # ../../measure/results/metrics-nginx_logs-20220828-151206.txt
+    # ../../measure/results/metrics-nginx_logs-20220828-151218.txt
+    # ../../measure/results/metrics-nginx_logs-20220828-151229.txt
 
     def export_rust_heap_only():
         df_column_names_axis = DfColumnNamesAxis("time_s", "mem_total_kb")
@@ -557,9 +591,10 @@ if __name__ == "__main__":
             AxisConfigs(x_axis_config, y_axis_config),
         )
 
-    export_rust_heap_only()
-    export_rust_add_stacks()
-    export_rust_add_pages_as_heap()
-    export_python_heap_only()
-    export_python_add_stacks()
-    export_python_add_pages_as_heap()
+    export_python_cpu()
+    # export_rust_heap_only()
+    # export_rust_add_stacks()
+    # export_rust_add_pages_as_heap()
+    # export_python_heap_only()
+    # export_python_add_stacks()
+    # export_python_add_pages_as_heap()
