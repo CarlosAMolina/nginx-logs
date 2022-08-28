@@ -54,7 +54,17 @@ run_and_measure_python() {
 #run_and_measure_test
 for i in {0..2}
 do
-  echo "[DEBUG] Init measure $i"
-  run_and_measure_rust
+  echo
+  echo "[DEBUG] Init measure python $i"
   run_and_measure_python
+done
+
+# Rust runs very fast and some loops will have all result values as 0
+# to avoid this, more loops are required, delete manually results with all values as 0.
+for i in {0..30}
+do
+  echo
+  echo "[DEBUG] Init measure rust $i"
+  run_and_measure_rust
+  sleep 2
 done
