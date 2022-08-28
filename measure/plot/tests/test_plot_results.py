@@ -67,16 +67,24 @@ class TestYAxisConfigCalculator(unittest.TestCase):
 
 
 class TestRunCompletePlot(unittest.TestCase):
+    def setUp(self):
+        this_script_path = plot_results.Path(__file__).parent.absolute()
+        self.files_path = this_script_path.joinpath("files")
+
     def test_plot_ps_metrics(self):
         df_column_names_axis = plot_results.DfColumnNamesAxis(
             "time_elapsed", "cpu_percentage"
         )
         legends = ["Execution 1", "Execution 2", "Execution 3"]
-        this_script_path = plot_results.Path(__file__).parent.absolute()
-        files_path = this_script_path.joinpath("files")
+        annotate_configs = [
+            plot_results.AnnotateConfig(
+                xy=(0.05, 55),
+                xytext=(0.55, 0.8),
+            ),
+        ]
         subplots_config = plot_results.SubplotsConfig(
             metrics_pathnames=[
-                str(files_path.joinpath(filename))
+                str(self.files_path.joinpath(filename))
                 for filename in ["metrics-ps.txt"] * 3
             ],
             legends=legends,
@@ -85,6 +93,7 @@ class TestRunCompletePlot(unittest.TestCase):
             markerssize=[4.5, 2.5, 0.7],
         )
         plot_results.export_image(
+            annotate_configs,
             "/tmp/metrics-ps.png",
             plot_results.Figure(plot_results.AxisLabels("Time (s)", "CPU (%)")),
             plot_results.get_subplots(df_column_names_axis, subplots_config),
@@ -93,11 +102,16 @@ class TestRunCompletePlot(unittest.TestCase):
     def test_plot_massif_metrics(self):
         df_column_names_axis = plot_results.DfColumnNamesAxis("time", "mem_total")
         legends = ["Execution 1", "Execution 2", "Execution 3"]
-        this_script_path = plot_results.Path(__file__).parent.absolute()
-        files_path = this_script_path.joinpath("files")
+        annotate_configs = [
+            plot_results.AnnotateConfig(
+                xy=(6_000, 1.55 * 10**6),
+                xytext=(0.5, 0.8),
+            ),
+        ]
         subplots_config = plot_results.SubplotsConfig(
             metrics_pathnames=[
-                str(files_path.joinpath(filename)) for filename in ["massif.out.1"] * 3
+                str(self.files_path.joinpath(filename))
+                for filename in ["massif.out.1"] * 3
             ],
             legends=legends,
             colors=["b", "limegreen", "r"],
@@ -105,6 +119,7 @@ class TestRunCompletePlot(unittest.TestCase):
             markerssize=[4.5, 2.5, 0.7],
         )
         plot_results.export_image(
+            annotate_configs,
             "/tmp/metrics-massif.png",
             plot_results.Figure(plot_results.AxisLabels("Time (s)", "Mem (B)")),
             plot_results.get_subplots(df_column_names_axis, subplots_config),
