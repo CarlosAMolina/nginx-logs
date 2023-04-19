@@ -628,7 +628,6 @@ if __name__ == "__main__":
         )
         plt.title('Execution time')
         plt.savefig('/tmp/foo')
-        return
         # TODO remove above
         # TODO complete code below
 
@@ -645,16 +644,16 @@ if __name__ == "__main__":
         )
         y_axis_config = AxisConfig(
             label=figure.axis_labels.y,
-            label_values=np.arange(0, 60, 10),
+            label_values=np.arange(0, 70, 10),
             max_lim=60,
             min_lim=0,
         )
         subplots_config = SubplotsConfig(
             metrics_pathnames=get_metrics_pathname(
                 [
-                    "massif.out.1814.python.add-pages-as-heap",
-                    "massif.out.1975.python.add-pages-as-heap",
-                    "massif.out.2125.python.add-pages-as-heap",
+                    "execution-time.csv",
+                    "execution-time.csv",
+                    "execution-time.csv",
                 ]
             ),
             legends=legends,
@@ -664,7 +663,7 @@ if __name__ == "__main__":
         )
         export_image(
             None,
-            "metrics-memory-massif-python-add-pages-as-heap.png",
+            "execution-time.png",
             figure,
             get_subplots(df_column_names_axis, subplots_config),
             AxisConfigs(x_axis_config, y_axis_config),
