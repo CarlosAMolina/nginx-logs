@@ -631,6 +631,7 @@ if __name__ == "__main__":
         # TODO remove above
         # TODO complete code below
 
+        # TODO group as in https://stackoverflow.com/questions/55256084/python-bar-plots
         df_column_names_axis = DfColumnNamesAxis("language", "time")
         figure = Figure(
             axis_labels=AxisLabels("Language", "Time (ms)"),
