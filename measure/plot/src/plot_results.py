@@ -611,11 +611,71 @@ if __name__ == "__main__":
             AxisConfigs(x_axis_config, y_axis_config),
         )
 
-    export_cpu_rust()
-    export_cpu_python()
-    export_memory_rust_heap_only()
-    export_memory_rust_add_stacks()
-    export_memory_rust_add_pages_as_heap()
-    export_memory_python_heap_only()
-    export_memory_python_add_stacks()
-    export_memory_python_add_pages_as_heap()
+    def export_execution_time():
+        df = pd.DataFrame(
+            {
+                "language": ["Rust", "Python"],
+                "time": [4, 54],
+            }
+        )
+
+        # TODO remove below
+        plt.figure(figsize=(9,6))
+        plt.bar(
+            x=df['language'],
+            height=df['time'],
+            color='midnightblue'
+        )
+        plt.title('Execution time')
+        plt.savefig('/tmp/foo')
+        return
+        # TODO remove above
+        # TODO complete code below
+
+        df_column_names_axis = DfColumnNamesAxis("language", "time")
+        figure = Figure(
+            axis_labels=AxisLabels("Language", "Time (ms)"),
+            title="Execution time",
+        )
+        x_axis_config = AxisConfig(
+            label=figure.axis_labels.x,
+            label_values=np.arange(0, 2, 1),
+            max_lim=2,
+            min_lim=-1,
+        )
+        y_axis_config = AxisConfig(
+            label=figure.axis_labels.y,
+            label_values=np.arange(0, 60, 10),
+            max_lim=60,
+            min_lim=0,
+        )
+        subplots_config = SubplotsConfig(
+            metrics_pathnames=get_metrics_pathname(
+                [
+                    "massif.out.1814.python.add-pages-as-heap",
+                    "massif.out.1975.python.add-pages-as-heap",
+                    "massif.out.2125.python.add-pages-as-heap",
+                ]
+            ),
+            legends=legends,
+            colors=["b", "limegreen", "r"],
+            markers=["o", "o", "o"],
+            markerssize=[4.5, 2.5, 0.7],
+        )
+        export_image(
+            None,
+            "metrics-memory-massif-python-add-pages-as-heap.png",
+            figure,
+            get_subplots(df_column_names_axis, subplots_config),
+            AxisConfigs(x_axis_config, y_axis_config),
+        )
+
+    # TODO export_cpu_rust()
+    # TODO export_cpu_python()
+    # TODO export_memory_rust_heap_only()
+    # TODO export_memory_rust_add_stacks()
+    # TODO export_memory_rust_add_pages_as_heap()
+    # TODO export_memory_python_heap_only()
+    # TODO export_memory_python_add_stacks()
+    # TODO export_memory_python_add_pages_as_heap()
+    export_execution_time()
