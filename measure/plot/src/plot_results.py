@@ -612,85 +612,44 @@ if __name__ == "__main__":
         )
 
     def export_execution_time():
-        df = pd.DataFrame(
-            {
-                "language": ["Rust", "Python"],
-                "time": [4, 54],
-            }
-        )
-
-        # TODO remove below
-        plt.figure(figsize=(9,6))
-        plt.bar(
-            x=df['language'],
-            height=df['time'],
-            color='midnightblue'
-        )
-        plt.title('Execution time')
-        plt.savefig('/tmp/foo')
-
-        # https://pythonguides.com/matplotlib-plot-bar-chart/
-        # Visualizing the data with multiple bar chart
-        plt.figure(figsize=[15, 9])
-        bar_width = 0.3
-        x_pos = np.arange(1, 2*3, 2)
-        # Plotting the multiple bar graphs on the same figure
-        plt.bar(x_pos, [0.5, 0.4, 0.6], color='r', width=bar_width, edgecolor='k', 
-                label='Rust')
-        plt.bar(x_pos+bar_width, [1.1, 0.9, 1.0], color='b', width=bar_width, edgecolor='k',
-                label='Python')
-        # Add xticks
-        plt.xticks(x_pos+bar_width, ["1º", "2º", "3º"], fontsize=15)
-        plt.yticks(fontsize=15)
-        plt.title('Execution time', fontsize=20)
-        plt.xlabel('Execution', fontsize=17)
-        plt.ylabel('Time (ms)', fontsize=17)
-        plt.legend(loc='upper center', fontsize=15)
-        plt.show()
-        return
-
-        # TODO remove above
-        # TODO complete code below
-
-
-        # TODO group as in https://stackoverflow.com/questions/55256084/python-bar-plots
-        df_column_names_axis = DfColumnNamesAxis("language", "time")
         figure = Figure(
             axis_labels=AxisLabels("Language", "Time (ms)"),
             title="Execution time",
         )
-        x_axis_config = AxisConfig(
-            label=figure.axis_labels.x,
-            label_values=np.arange(0, 2, 1),
-            max_lim=2,
-            min_lim=-1,
+        df = get_df_from_file(get_metrics_pathname(["execution-time.csv"])[0])
+        # https://pythonguides.com/matplotlib-plot-bar-chart/
+        bar_width = 0.5
+        x_pos = np.arange(1, 2 * len(df["execution"]), 2)
+        plt.bar(
+            x_pos,
+            df["rust"],
+            color='r',
+            width=bar_width,
+            edgecolor='k', 
+            label='Rust',
         )
-        y_axis_config = AxisConfig(
-            label=figure.axis_labels.y,
-            label_values=np.arange(0, 70, 10),
-            max_lim=60,
-            min_lim=0,
+        plt.bar(
+            x_pos+bar_width,
+            df["python"],
+            color='b',
+            width=bar_width,
+            edgecolor='k',
+            label='Python',
         )
-        subplots_config = SubplotsConfig(
-            metrics_pathnames=get_metrics_pathname(
-                [
-                    "execution-time.csv",
-                    "execution-time.csv",
-                    "execution-time.csv",
-                ]
-            ),
-            legends=legends,
-            colors=["b", "limegreen", "r"],
-            markers=["o", "o", "o"],
-            markerssize=[4.5, 2.5, 0.7],
-        )
-        export_image(
-            None,
-            "execution-time.png",
-            figure,
-            get_subplots(df_column_names_axis, subplots_config),
-            AxisConfigs(x_axis_config, y_axis_config),
-        )
+        TITLE_FONTSIZE = None
+        LABEL_FONTSIZE = None
+        TICKS_FONTSIZE = None
+        plt.xticks(x_pos+bar_width/2, df["execution"], fontsize=TICKS_FONTSIZE)
+        plt.yticks(fontsize=TICKS_FONTSIZE)
+        plt.title(figure.title, fontsize=TITLE_FONTSIZE)
+        plt.xlabel(figure.axis_labels.x, fontsize=LABEL_FONTSIZE)
+        plt.ylabel(figure.axis_labels.y, fontsize=LABEL_FONTSIZE)
+        plt.legend(loc='upper right', fontsize=TICKS_FONTSIZE)
+        plt.grid(color="black", axis="y", linestyle="-", linewidth=0.1)
+        #plt.subplots_adjust(left=0.15, bottom=0.15, right=0.95, top=0.90)
+        plt.savefig("/tmp/foo.png", dpi=300)
+        return
+
 
     # TODO export_cpu_rust()
     # TODO export_cpu_python()
