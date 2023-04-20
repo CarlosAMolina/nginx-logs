@@ -628,8 +628,30 @@ if __name__ == "__main__":
         )
         plt.title('Execution time')
         plt.savefig('/tmp/foo')
+
+        # https://pythonguides.com/matplotlib-plot-bar-chart/
+        # Visualizing the data with multiple bar chart
+        plt.figure(figsize=[15, 9])
+        bar_width = 0.3
+        x_pos = np.arange(1, 2*3, 2)
+        # Plotting the multiple bar graphs on the same figure
+        plt.bar(x_pos, [0.5, 0.4, 0.6], color='r', width=bar_width, edgecolor='k', 
+                label='Rust')
+        plt.bar(x_pos+bar_width, [1.1, 0.9, 1.0], color='b', width=bar_width, edgecolor='k',
+                label='Python')
+        # Add xticks
+        plt.xticks(x_pos+bar_width, ["1º", "2º", "3º"], fontsize=15)
+        plt.yticks(fontsize=15)
+        plt.title('Execution time', fontsize=20)
+        plt.xlabel('Execution', fontsize=17)
+        plt.ylabel('Time (ms)', fontsize=17)
+        plt.legend(loc='upper center', fontsize=15)
+        plt.show()
+        return
+
         # TODO remove above
         # TODO complete code below
+
 
         # TODO group as in https://stackoverflow.com/questions/55256084/python-bar-plots
         df_column_names_axis = DfColumnNamesAxis("language", "time")
