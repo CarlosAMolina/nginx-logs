@@ -613,47 +613,62 @@ if __name__ == "__main__":
 
     def export_execution_time():
         figure = Figure(
-            axis_labels=AxisLabels("Language", "Time (ms)"),
-            title="Execution time",
+            axis_labels=AxisLabels("Language and function", "Time (s)"),
+            title="Execution time (average)",
         )
         df = get_df_from_file(get_metrics_pathname(["execution-time.csv"])[0])
         # https://pythonguides.com/matplotlib-plot-bar-chart/
         bar_width = 0.5
         executions_count = 4
         x_pos = np.arange(1, 2 * executions_count, 2)
-        colors = ["r", "b", "g", "y"]
-        i = 0
-        for row in df.itertuples():
-            plt.bar(
-                x_pos + bar_width * i,
-                [
-                    row.time_execution_1,
-                    row.time_execution_2,
-                    row.time_execution_3,
-                    row.time_execution_4,
-                ],
-                color=colors[i],
-                width=bar_width,
-                edgecolor='k',
-                label=row.description,
-            )
-            i += 1
+        #for description in df["description"]:
+        column_name = "time_average"
+        values = df[column_name]
+        fig, ax = plt.subplots()
+        ax.bar(
+            x_pos + bar_width / 3,
+            values,
+            color="b",
+            width=bar_width,
+            edgecolor='k',
+        )
+        # https://stackoverflow.com/questions/28931224/how-to-add-value-labels-on-a-bar-chart
+        ax.bar_label(ax.containers[0], label_type='edge')
+
+        #i = 0
+        #executions = df.columns[1: -1]
+        #colors = ["r", "b", "g", "y"]
+        #for execution in executions:
+        #    #print(description)
+        #    #values = df.loc[df["description"] == description]
+        #    values = df[execution]
+        #    print(values)
+        #    #values = values[executions].iloc[0].tolist()
+        #    #print(values)
+        #    ax.bar(
+        #        x_pos + bar_width * i,
+        #        values,
+        #        color=colors[i],
+        #        width=bar_width,
+        #        edgecolor='k',
+        #        label=df["description"].iloc[i],
+        #    )
+        #    i += 1
         TITLE_FONTSIZE = None
         LABEL_FONTSIZE = None
         TICKS_FONTSIZE = None
         #xticks = df["execution"]
-        xticks = [
-            "Execution 1",
-            "Execution 2",
-            "Execution 3",
-            "Execution 4",
-        ]
-        plt.xticks(x_pos+bar_width/2, xticks, fontsize=TICKS_FONTSIZE)
-        plt.yticks(fontsize=TICKS_FONTSIZE)
+        #x_grid_labels = df["description"]
+        x_grid_labels = ["Rust (by index)", "Python (match)", "Rust (find)", "Rust (captures)"]
+        #ax.set_xlim(right=20)
+        ax.set_ylim(bottom=0, top=360)
+        plt.xticks(x_pos+bar_width/2, x_grid_labels, fontsize=TICKS_FONTSIZE, rotation=0)
+        y_grid_labels = np.arange(0, 361, 60)
+        plt.yticks(y_grid_labels, fontsize=TICKS_FONTSIZE)
         plt.title(figure.title, fontsize=TITLE_FONTSIZE)
         plt.xlabel(figure.axis_labels.x, fontsize=LABEL_FONTSIZE)
         plt.ylabel(figure.axis_labels.y, fontsize=LABEL_FONTSIZE)
-        plt.legend(loc='upper right', fontsize=TICKS_FONTSIZE)
+        #plt.legend(loc='upper right', fontsize=TICKS_FONTSIZE)
         plt.grid(color="black", axis="y", linestyle="-", linewidth=0.1)
         #plt.subplots_adjust(left=0.15, bottom=0.15, right=0.95, top=0.90)
         plt.savefig("/tmp/foo.png", dpi=300)
