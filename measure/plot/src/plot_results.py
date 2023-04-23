@@ -619,27 +619,36 @@ if __name__ == "__main__":
         df = get_df_from_file(get_metrics_pathname(["execution-time.csv"])[0])
         # https://pythonguides.com/matplotlib-plot-bar-chart/
         bar_width = 0.5
-        x_pos = np.arange(1, 2 * len(df["execution"]), 2)
-        plt.bar(
-            x_pos,
-            df["rust"],
-            color='r',
-            width=bar_width,
-            edgecolor='k', 
-            label='Rust',
-        )
-        plt.bar(
-            x_pos+bar_width,
-            df["python"],
-            color='b',
-            width=bar_width,
-            edgecolor='k',
-            label='Python',
-        )
+        executions_count = 4
+        x_pos = np.arange(1, 2 * executions_count, 2)
+        colors = ["r", "b", "g", "y"]
+        i = 0
+        for row in df.itertuples():
+            plt.bar(
+                x_pos + bar_width * i,
+                [
+                    row.time_execution_1,
+                    row.time_execution_2,
+                    row.time_execution_3,
+                    row.time_execution_4,
+                ],
+                color=colors[i],
+                width=bar_width,
+                edgecolor='k',
+                label=row.description,
+            )
+            i += 1
         TITLE_FONTSIZE = None
         LABEL_FONTSIZE = None
         TICKS_FONTSIZE = None
-        plt.xticks(x_pos+bar_width/2, df["execution"], fontsize=TICKS_FONTSIZE)
+        #xticks = df["execution"]
+        xticks = [
+            "Execution 1",
+            "Execution 2",
+            "Execution 3",
+            "Execution 4",
+        ]
+        plt.xticks(x_pos+bar_width/2, xticks, fontsize=TICKS_FONTSIZE)
         plt.yticks(fontsize=TICKS_FONTSIZE)
         plt.title(figure.title, fontsize=TITLE_FONTSIZE)
         plt.xlabel(figure.axis_labels.x, fontsize=LABEL_FONTSIZE)
@@ -648,7 +657,6 @@ if __name__ == "__main__":
         plt.grid(color="black", axis="y", linestyle="-", linewidth=0.1)
         #plt.subplots_adjust(left=0.15, bottom=0.15, right=0.95, top=0.90)
         plt.savefig("/tmp/foo.png", dpi=300)
-        return
 
 
     # TODO export_cpu_rust()
