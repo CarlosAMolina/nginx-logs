@@ -621,10 +621,9 @@ if __name__ == "__main__":
         bar_width = 0.5
         executions_count = 4
         x_pos = np.arange(1, 2 * executions_count, 2)
-        #for description in df["description"]:
         column_name = "time_average"
         values = df[column_name]
-        fig, ax = plt.subplots()
+        _, ax = plt.subplots()
         ax.bar(
             x_pos + bar_width / 3,
             values,
@@ -634,44 +633,21 @@ if __name__ == "__main__":
         )
         # https://stackoverflow.com/questions/28931224/how-to-add-value-labels-on-a-bar-chart
         ax.bar_label(ax.containers[0], label_type='edge')
-
-        #i = 0
-        #executions = df.columns[1: -1]
-        #colors = ["r", "b", "g", "y"]
-        #for execution in executions:
-        #    #print(description)
-        #    #values = df.loc[df["description"] == description]
-        #    values = df[execution]
-        #    print(values)
-        #    #values = values[executions].iloc[0].tolist()
-        #    #print(values)
-        #    ax.bar(
-        #        x_pos + bar_width * i,
-        #        values,
-        #        color=colors[i],
-        #        width=bar_width,
-        #        edgecolor='k',
-        #        label=df["description"].iloc[i],
-        #    )
-        #    i += 1
         TITLE_FONTSIZE = None
         LABEL_FONTSIZE = None
         TICKS_FONTSIZE = None
-        #xticks = df["execution"]
-        #x_grid_labels = df["description"]
         x_grid_labels = ["Rust (by index)", "Python (match)", "Rust (find)", "Rust (captures)"]
-        #ax.set_xlim(right=20)
+        y_grid_labels = np.arange(0, 361, 60)
         ax.set_ylim(bottom=0, top=360)
         plt.xticks(x_pos+bar_width/2, x_grid_labels, fontsize=TICKS_FONTSIZE, rotation=0)
-        y_grid_labels = np.arange(0, 361, 60)
         plt.yticks(y_grid_labels, fontsize=TICKS_FONTSIZE)
         plt.title(figure.title, fontsize=TITLE_FONTSIZE)
         plt.xlabel(figure.axis_labels.x, fontsize=LABEL_FONTSIZE)
         plt.ylabel(figure.axis_labels.y, fontsize=LABEL_FONTSIZE)
-        #plt.legend(loc='upper right', fontsize=TICKS_FONTSIZE)
         plt.grid(color="black", axis="y", linestyle="-", linewidth=0.1)
-        #plt.subplots_adjust(left=0.15, bottom=0.15, right=0.95, top=0.90)
-        plt.savefig("/tmp/foo.png", dpi=300)
+        path_name = "/tmp/execution-time.png"
+        print(f"Init export to {path_name}")
+        plt.savefig(path_name, dpi=300)
 
 
     # TODO export_cpu_rust()
