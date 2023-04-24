@@ -1,7 +1,7 @@
 use std::fmt;
 
-use lazy_static::lazy_static;
-use regex::Regex;
+//use lazy_static::lazy_static;
+//use regex::Regex;
 use serde_derive::Serialize;
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -34,112 +34,112 @@ impl<'a> fmt::Display for Log<'a> {
 }
 
 // Without regexs
-//pub fn get_log(text: &str) -> Option<Log> {
-//    let mut log_parts_index = vec![0];
-//    let characters_to_match = vec![
-//        b' ', b' ', b'[', b']', b'"', b'"', b' ', b' ', b'"', b'"', b'"',
-//    ];
-//    let bytes = text.as_bytes();
-//    let mut match_index = 0;
-//    for (i, &item) in bytes.iter().enumerate() {
-//        if item == characters_to_match[match_index] {
-//            log_parts_index.push(i);
-//            if match_index < characters_to_match.len() - 1 {
-//                match_index += 1;
-//            }
-//        }
-//    }
-//    if log_parts_index.len() == 13 {
-//        Some(Log {
-//            remote_addr: &text[log_parts_index[0]..log_parts_index[1]],
-//            remote_user: &text[log_parts_index[2] + 1..log_parts_index[3] - 1],
-//            time_local: &text[log_parts_index[3] + 1..log_parts_index[4]],
-//            request: &text[log_parts_index[5] + 1..log_parts_index[6]],
-//            status: &text[log_parts_index[7] + 1..log_parts_index[8]],
-//            body_bytes_sent: &text[log_parts_index[8] + 1..log_parts_index[9] - 1],
-//            http_referer: &text[log_parts_index[9] + 1..log_parts_index[10]],
-//            http_user_agent: &text[log_parts_index[11] + 1..log_parts_index[12]],
-//        })
-//    } else {
-//        None
-//    }
-//}
+pub fn get_log(text: &str) -> Option<Log> {
+    let mut log_parts_index = vec![0];
+    let characters_to_match = vec![
+        b' ', b' ', b'[', b']', b'"', b'"', b' ', b' ', b'"', b'"', b'"',
+    ];
+    let bytes = text.as_bytes();
+    let mut match_index = 0;
+    for (i, &item) in bytes.iter().enumerate() {
+        if item == characters_to_match[match_index] {
+            log_parts_index.push(i);
+            if match_index < characters_to_match.len() - 1 {
+                match_index += 1;
+            }
+        }
+    }
+    if log_parts_index.len() == 13 {
+        Some(Log {
+            remote_addr: &text[log_parts_index[0]..log_parts_index[1]],
+            remote_user: &text[log_parts_index[2] + 1..log_parts_index[3] - 1],
+            time_local: &text[log_parts_index[3] + 1..log_parts_index[4]],
+            request: &text[log_parts_index[5] + 1..log_parts_index[6]],
+            status: &text[log_parts_index[7] + 1..log_parts_index[8]],
+            body_bytes_sent: &text[log_parts_index[8] + 1..log_parts_index[9] - 1],
+            http_referer: &text[log_parts_index[9] + 1..log_parts_index[10]],
+            http_user_agent: &text[log_parts_index[11] + 1..log_parts_index[12]],
+        })
+    } else {
+        None
+    }
+}
 
 // Using re.find
-pub fn get_log(text: &str) -> Option<Log> {
-    let mut characters_checked = 0;
-    lazy_static! {
-        static ref RE_IPV4: Regex = Regex::new(r"(\d{1,3}[\.]){3}\d{1,3}",).unwrap();
-    }
-    //ipv4
-    let mut log_parts_index = vec![0];
-    let mut re_result = RE_IPV4.find(text).unwrap();
-    log_parts_index.push(re_result.end());
-    //remote user
-    characters_checked += re_result.end();
-    characters_checked += 3;
-    log_parts_index.push(characters_checked);
-    lazy_static! {
-        static ref RE_REMOTE_USER: Regex = Regex::new(r".+\s\[").unwrap();
-    }
-    re_result = RE_REMOTE_USER.find(&text[characters_checked..]).unwrap();
-    characters_checked += re_result.end();
-    log_parts_index.push(characters_checked - 2);
-    //time local
-    lazy_static! {
-        static ref RE_TIME_LOCAL: Regex =
-            Regex::new(r"\d{2}/[[:alpha:]]{3}/\d{4}:\d{2}:\d{2}:\d{2}\s\+\d{4}",).unwrap();
-    }
-    log_parts_index.push(characters_checked);
-    re_result = RE_TIME_LOCAL.find(&text[characters_checked..]).unwrap();
-    characters_checked += re_result.end();
-    log_parts_index.push(characters_checked);
-    //request
-    characters_checked += 3;
-    log_parts_index.push(characters_checked);
-    lazy_static! {
-        static ref RE_REQUEST: Regex = Regex::new(r#"[[:alpha:]].*"\s\d"#).unwrap();
-    }
-    re_result = RE_REQUEST.find(&text[characters_checked..]).unwrap();
-    characters_checked += re_result.end() - 1;
-    log_parts_index.push(characters_checked - 2);
-    //status
-    log_parts_index.push(characters_checked);
-    characters_checked += 3;
-    log_parts_index.push(characters_checked);
-    //body bytes sent
-    log_parts_index.push(characters_checked + 1);
-    lazy_static! {
-        static ref RE_BODY_BYTES_SENT: Regex = Regex::new(r"\d+").unwrap();
-    }
-    let body_bytes_sent = RE_BODY_BYTES_SENT
-        .find(&text[characters_checked..])
-        .unwrap();
-    characters_checked += body_bytes_sent.end();
-    log_parts_index.push(characters_checked);
-    //http referer
-    characters_checked += 2;
-    log_parts_index.push(characters_checked);
-    lazy_static! {
-        static ref RE_HTTP_REFERER: Regex = Regex::new(r#".*"\s""#).unwrap();
-    }
-    let http_referer = RE_HTTP_REFERER.find(&text[characters_checked..]).unwrap();
-    characters_checked += http_referer.end();
-    log_parts_index.push(characters_checked - 3);
-    //http user agent
-    log_parts_index.push(characters_checked);
-    log_parts_index.push(text.len() - 1);
-    Some(Log {
-        remote_addr: &text[log_parts_index[0]..log_parts_index[1]],
-        remote_user: &text[log_parts_index[2]..log_parts_index[3]],
-        time_local: &text[log_parts_index[4]..log_parts_index[5]],
-        request: &text[log_parts_index[6]..log_parts_index[7]],
-        status: &text[log_parts_index[8]..log_parts_index[9]],
-        body_bytes_sent: &text[log_parts_index[10]..log_parts_index[11]],
-        http_referer: &text[log_parts_index[12]..log_parts_index[13]],
-        http_user_agent: &text[log_parts_index[14]..log_parts_index[15]],
-    })
-}
+//pub fn get_log(text: &str) -> Option<Log> {
+//    let mut characters_checked = 0;
+//    lazy_static! {
+//        static ref RE_IPV4: Regex = Regex::new(r"(\d{1,3}[\.]){3}\d{1,3}",).unwrap();
+//    }
+//    //ipv4
+//    let mut log_parts_index = vec![0];
+//    let mut re_result = RE_IPV4.find(text).unwrap();
+//    log_parts_index.push(re_result.end());
+//    //remote user
+//    characters_checked += re_result.end();
+//    characters_checked += 3;
+//    log_parts_index.push(characters_checked);
+//    lazy_static! {
+//        static ref RE_REMOTE_USER: Regex = Regex::new(r".+\s\[").unwrap();
+//    }
+//    re_result = RE_REMOTE_USER.find(&text[characters_checked..]).unwrap();
+//    characters_checked += re_result.end();
+//    log_parts_index.push(characters_checked - 2);
+//    //time local
+//    lazy_static! {
+//        static ref RE_TIME_LOCAL: Regex =
+//            Regex::new(r"\d{2}/[[:alpha:]]{3}/\d{4}:\d{2}:\d{2}:\d{2}\s\+\d{4}",).unwrap();
+//    }
+//    log_parts_index.push(characters_checked);
+//    re_result = RE_TIME_LOCAL.find(&text[characters_checked..]).unwrap();
+//    characters_checked += re_result.end();
+//    log_parts_index.push(characters_checked);
+//    //request
+//    characters_checked += 3;
+//    log_parts_index.push(characters_checked);
+//    lazy_static! {
+//        static ref RE_REQUEST: Regex = Regex::new(r#"[[:alpha:]].*"\s\d"#).unwrap();
+//    }
+//    re_result = RE_REQUEST.find(&text[characters_checked..]).unwrap();
+//    characters_checked += re_result.end() - 1;
+//    log_parts_index.push(characters_checked - 2);
+//    //status
+//    log_parts_index.push(characters_checked);
+//    characters_checked += 3;
+//    log_parts_index.push(characters_checked);
+//    //body bytes sent
+//    log_parts_index.push(characters_checked + 1);
+//    lazy_static! {
+//        static ref RE_BODY_BYTES_SENT: Regex = Regex::new(r"\d+").unwrap();
+//    }
+//    let body_bytes_sent = RE_BODY_BYTES_SENT
+//        .find(&text[characters_checked..])
+//        .unwrap();
+//    characters_checked += body_bytes_sent.end();
+//    log_parts_index.push(characters_checked);
+//    //http referer
+//    characters_checked += 2;
+//    log_parts_index.push(characters_checked);
+//    lazy_static! {
+//        static ref RE_HTTP_REFERER: Regex = Regex::new(r#".*"\s""#).unwrap();
+//    }
+//    let http_referer = RE_HTTP_REFERER.find(&text[characters_checked..]).unwrap();
+//    characters_checked += http_referer.end();
+//    log_parts_index.push(characters_checked - 3);
+//    //http user agent
+//    log_parts_index.push(characters_checked);
+//    log_parts_index.push(text.len() - 1);
+//    Some(Log {
+//        remote_addr: &text[log_parts_index[0]..log_parts_index[1]],
+//        remote_user: &text[log_parts_index[2]..log_parts_index[3]],
+//        time_local: &text[log_parts_index[4]..log_parts_index[5]],
+//        request: &text[log_parts_index[6]..log_parts_index[7]],
+//        status: &text[log_parts_index[8]..log_parts_index[9]],
+//        body_bytes_sent: &text[log_parts_index[10]..log_parts_index[11]],
+//        http_referer: &text[log_parts_index[12]..log_parts_index[13]],
+//        http_user_agent: &text[log_parts_index[14]..log_parts_index[15]],
+//    })
+//}
 
 // Using re.captures
 //pub fn get_log(text: &str) -> Option<Log> {
