@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM python:3.9.13-alpine3.16
+FROM python:3.11.3-alpine3.17
 WORKDIR /app
 COPY src/*.py src/
 #ENTRYPOINT ["tail", "-f", "/dev/null"]
