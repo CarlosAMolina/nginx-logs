@@ -12,7 +12,9 @@ RUN rustup target add x86_64-unknown-linux-musl && \
         && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-COPY ./ .
+COPY Cargo.lock .
+COPY Cargo.toml .
+COPY src/* src/
 RUN cargo build --target x86_64-unknown-linux-musl --release
 
 # Final image.
