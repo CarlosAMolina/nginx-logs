@@ -7,6 +7,7 @@ remove_results_file() {
     echo "[DEBUG] Init remove results: '$csv_pathname', '$error_pathname'"
     rm $csv_pathname
     rm $error_pathname
+    rm -rf ../../python/src/__pycache__/
 }
 
 measure() {

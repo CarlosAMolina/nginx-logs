@@ -30,6 +30,7 @@ remove_result_files() {
     echo "[DEBUG] Init remove result files"
     rm /tmp/logs/error.txt
     rm /tmp/logs/result.csv
+    rm -rf ../../python/src/__pycache__/
 }
 
 run_and_measure_rust() {
