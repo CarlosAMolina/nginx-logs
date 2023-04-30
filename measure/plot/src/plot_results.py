@@ -364,9 +364,9 @@ if __name__ == "__main__":
         subplots_config = SubplotsConfig(
             metrics_pathnames=get_metrics_pathname(
                 [
-                    "massif.out.1616.rust.heap-only",
-                    "massif.out.1827.rust.heap-only",
-                    "massif.out.1984.rust.heap-only",
+                    "massif.out.measure-1.rust.heap-only",
+                    "massif.out.measure-2.rust.heap-only",
+                    "massif.out.measure-3.rust.heap-only",
                 ]
             ),
             legends=legends,
@@ -409,9 +409,9 @@ if __name__ == "__main__":
         subplots_config = SubplotsConfig(
             metrics_pathnames=get_metrics_pathname(
                 [
-                    "massif.out.1624.rust.add-stacks",
-                    "massif.out.1832.rust.add-stacks",
-                    "massif.out.1990.rust.add-stacks",
+                    "massif.out.measure-1.rust.add-stacks",
+                    "massif.out.measure-2.rust.add-stacks",
+                    "massif.out.measure-3.rust.add-stacks",
                 ]
             ),
             legends=legends,
@@ -458,9 +458,9 @@ if __name__ == "__main__":
         subplots_config = SubplotsConfig(
             metrics_pathnames=get_metrics_pathname(
                 [
-                    "massif.out.1638.rust.add-pages-as-heap",
-                    "massif.out.1842.rust.add-pages-as-heap",
-                    "massif.out.1998.rust.add-pages-as-heap",
+                    "massif.out.measure-1.rust.add-pages-as-heap",
+                    "massif.out.measure-2.rust.add-pages-as-heap",
+                    "massif.out.measure-3.rust.add-pages-as-heap",
                 ]
             ),
             legends=legends,
@@ -503,9 +503,9 @@ if __name__ == "__main__":
         subplots_config = SubplotsConfig(
             metrics_pathnames=get_metrics_pathname(
                 [
-                    "massif.out.1645.python.heap-only",
-                    "massif.out.1849.python.heap-only",
-                    "massif.out.2008.python.heap-only",
+                    "massif.out.measure-1.python.heap-only",
+                    "massif.out.measure-2.python.heap-only",
+                    "massif.out.measure-3.python.heap-only",
                 ]
             ),
             legends=legends,
@@ -548,9 +548,9 @@ if __name__ == "__main__":
         subplots_config = SubplotsConfig(
             metrics_pathnames=get_metrics_pathname(
                 [
-                    "massif.out.1654.python.add-stacks",
-                    "massif.out.1858.python.add-stacks",
-                    "massif.out.2015.python.add-stacks",
+                    "massif.out.measure-1.python.add-stacks",
+                    "massif.out.measure-2.python.add-stacks",
+                    "massif.out.measure-3.python.add-stacks",
                 ]
             ),
             legends=legends,
@@ -593,9 +593,9 @@ if __name__ == "__main__":
         subplots_config = SubplotsConfig(
             metrics_pathnames=get_metrics_pathname(
                 [
-                    "massif.out.1814.python.add-pages-as-heap",
-                    "massif.out.1975.python.add-pages-as-heap",
-                    "massif.out.2125.python.add-pages-as-heap",
+                    "massif.out.measure-1.python.add-pages-as-heap",
+                    "massif.out.measure-2.python.add-pages-as-heap",
+                    "massif.out.measure-3.python.add-pages-as-heap",
                 ]
             ),
             legends=legends,
@@ -652,10 +652,10 @@ if __name__ == "__main__":
 
     # TODO export_cpu_rust()
     # TODO export_cpu_python()
-    # TODO export_memory_rust_heap_only()
-    # TODO export_memory_rust_add_stacks()
-    # TODO export_memory_rust_add_pages_as_heap()
-    # TODO export_memory_python_heap_only()
-    # TODO export_memory_python_add_stacks()
-    # TODO export_memory_python_add_pages_as_heap()
-    export_execution_time()
+    export_memory_rust_heap_only()
+    export_memory_rust_add_stacks()
+    export_memory_rust_add_pages_as_heap()
+    export_memory_python_heap_only()
+    export_memory_python_add_stacks()
+    export_memory_python_add_pages_as_heap()
+    # TODO export_execution_time()
