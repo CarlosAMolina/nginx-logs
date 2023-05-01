@@ -257,8 +257,7 @@ def export_execution_time():
     bar_width = 0.5
     executions_count = 4
     x_pos = np.arange(1, 2 * executions_count, 2)
-    column_name = "time_average"
-    values = df[column_name]
+    values = df["time_average"]
     _, ax = plt.subplots()
     ax.bar(
         x_pos + bar_width / 3,
@@ -272,14 +271,10 @@ def export_execution_time():
     TITLE_FONTSIZE = None
     LABEL_FONTSIZE = None
     TICKS_FONTSIZE = None
-    x_grid_labels = [
-        "Rust (by index)",
-        "Python (match)",
-        "Rust (find)",
-        "Rust (captures)",
-    ]
-    y_grid_labels = np.arange(0, 361, 60)
-    ax.set_ylim(bottom=0, top=360)
+    x_grid_labels = df["description"]
+    y_max = 13
+    y_grid_labels = np.arange(0, y_max, 2)
+    ax.set_ylim(bottom=0, top=y_max)
     plt.xticks(
         x_pos + bar_width / 2, x_grid_labels, fontsize=TICKS_FONTSIZE, rotation=0
     )
