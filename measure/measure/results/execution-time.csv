@@ -1,5 +1,5 @@
-description,time_execution_1,time_execution_2,time_execution_3,time_execution_4,time_average
-Rust fastest option (by characters index),29.436,30.227,33.716,30.339,30.929
-Python fastest option (regex match function),271.780,275.314,274.713,277.136,274.736
-Rust fastest regex option (find function),43.857,44.913,43.606,49.675,45.513
-Rust slowest regex option (captures function),348.511,337.282,340.437,346.087,343.079
+description,time_execution_1,time_execution_2,time_execution_3,time_execution_4
+Rust fastest option (by characters index),0.721,0.579,0.577,0.575
+Python fastest option (regex match function),9.792,9.736,9.728,9.682
+Rust fastest regex option (find function),1.413,1.413,1.414,1.409
+Rust slowest regex option (captures function),12.213,12.119,12.147,11.998

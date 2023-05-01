@@ -9,7 +9,7 @@ class DfToPlot:
 
     def _get_df_set_average(self, df: pd.DataFrame) -> pd.DataFrame:
         result = df
-        result["average_s"] = result.mean(axis='columns', numeric_only=True)
+        result["time_average"] = result.mean(axis='columns', numeric_only=True)
         breakpoint()
         return result
 
