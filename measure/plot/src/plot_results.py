@@ -1,9 +1,10 @@
+import sys
 from pathlib import Path
 from typing import List, NamedTuple, Optional, Tuple, Union
-import numpy as np
-import pandas as pd
 
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
 from extractors import extractor
 from transformers import transformer
@@ -240,6 +241,7 @@ def export_image(
 
 
 if __name__ == "__main__":
+    what_to_plot = "" if len(sys.argv) == 1 else sys.argv[1]
     legends = ["Execution 1", "Execution 2", "Execution 3"]
 
     def get_metrics_pathname(metrics_filenames: List[str]) -> List[str]:
@@ -649,13 +651,21 @@ if __name__ == "__main__":
         print(f"Init export to {path_name}")
         plt.savefig(path_name, dpi=300)
 
+    if what_to_plot == "time":
+        print("[DEBUG] Init execution time")
+        export_execution_time()
+    elif what_to_plot == "memory":
+        print("[DEBUG] Init memory")
+        export_memory_rust_heap_only()
+        export_memory_rust_add_stacks()
+        export_memory_rust_add_pages_as_heap()
+        export_memory_python_heap_only()
+        export_memory_python_add_stacks()
+        export_memory_python_add_pages_as_heap()
+    elif what_to_plot == "cpu":
+        print("[DEBUG] Init CPU")
+        export_cpu_rust()
+        export_cpu_python()
+    else:
+        raise ValueError(f"Invalid argument: {what_to_plot}")
 
-    # TODO export_cpu_rust()
-    # TODO export_cpu_python()
-    export_memory_rust_heap_only()
-    export_memory_rust_add_stacks()
-    export_memory_rust_add_pages_as_heap()
-    export_memory_python_heap_only()
-    export_memory_python_add_stacks()
-    export_memory_python_add_pages_as_heap()
-    # TODO export_execution_time()
