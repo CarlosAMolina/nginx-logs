@@ -668,7 +668,6 @@ def export_memory_python_add_pages_as_heap():
 
 if __name__ == "__main__":
     what_to_plot = "" if len(sys.argv) == 1 else sys.argv[1]
-
     if what_to_plot == "time":
         print("[DEBUG] Init execution time")
         export_execution_time()
@@ -685,4 +684,9 @@ if __name__ == "__main__":
         export_cpu_rust()
         export_cpu_python()
     else:
-        raise ValueError(f"Invalid argument: {what_to_plot}")
+        if len(sys.argv) == 1:
+            error_msg = "No arguments supplied"
+        else:
+            error_msg = f"Invalid argument: {what_to_plot}"
+        error_msg += ". Valid arguments: time, memory, cpu"
+        raise ValueError(error_msg)
