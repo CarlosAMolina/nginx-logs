@@ -201,7 +201,7 @@ def get_subplots(
     ):
         print(f"Init {metrics_pathname}")
         df = get_df_from_file(metrics_pathname)
-        # print(df.sort_values(by=['mem_total'], ascending=False).head())
+        #print_top_memory(df)
         result.append(
             Subplot(
                 legend,
@@ -215,6 +215,9 @@ def get_subplots(
             )
         )
     return result
+
+def print_top_memory(df: pd.DataFrame):
+    print(df.sort_values(by=['mem_total'], ascending=False).head(3))
 
 
 def get_df_from_file(metrics_pathname: str) -> pd.DataFrame:
@@ -347,8 +350,8 @@ if __name__ == "__main__":
         )
         x_axis_config = AxisConfig(
             label=figure.axis_labels.x,
-            label_values=np.arange(0, 10, 1),
-            max_lim=9,
+            label_values=np.arange(0, 11, 1),
+            max_lim=10,
             min_lim=-0.5,
         )
         y_axis_config = AxisConfig(
@@ -359,7 +362,7 @@ if __name__ == "__main__":
         )
         annotate_configs = [
             AnnotateConfig(
-                xy=(0.85, 100),
+                xy=(0.43, 99),
                 xytext=(0.15, 0.8),
             )
         ]
@@ -392,8 +395,8 @@ if __name__ == "__main__":
         )
         x_axis_config = AxisConfig(
             label=figure.axis_labels.x,
-            label_values=np.arange(0, 170, 10),
-            max_lim=155,
+            label_values=np.arange(0, 270, 20),
+            max_lim=260,
             min_lim=-5,
         )
         y_axis_config = AxisConfig(
@@ -404,7 +407,7 @@ if __name__ == "__main__":
         )
         annotate_configs = [
             AnnotateConfig(
-                xy=(0.85, 100),
+                xy=(12.0, 100),
                 xytext=(0.15, 0.8),
             ),
         ]
@@ -449,7 +452,7 @@ if __name__ == "__main__":
         )
         annotate_configs = [
             AnnotateConfig(
-                xy=(0.4, 5),
+                xy=(0.45, 5),
                 xytext=(0.15, 0.8),
             ),
             AnnotateConfig(
@@ -492,14 +495,14 @@ if __name__ == "__main__":
         )
         y_axis_config = AxisConfig(
             label=figure.axis_labels.y,
-            label_values=np.arange(0, 27, 2),
-            max_lim=26.5,
+            label_values=np.arange(0, 29, 2),
+            max_lim=28.0,
             min_lim=-0.5,
         )
         annotate_configs = [
             AnnotateConfig(
-                xy=(75, 26),
-                xytext=(0.5, 0.8),
+                xy=(74, 26),
+                xytext=(0.5, 0.84),
             ),
         ]
         subplots_config = SubplotsConfig(
@@ -531,20 +534,20 @@ if __name__ == "__main__":
         )
         x_axis_config = AxisConfig(
             label=figure.axis_labels.x,
-            label_values=np.arange(0, 44, 2),
-            max_lim=42,
+            label_values=np.arange(0, 105, 5),
+            max_lim=100,
             min_lim=-0.5,
         )
         y_axis_config = AxisConfig(
             label=figure.axis_labels.y,
-            label_values=np.arange(0, 27, 2),
-            max_lim=26.5,
+            label_values=np.arange(0, 30, 2),
+            max_lim=28.0,
             min_lim=-0.5,
         )
         annotate_configs = [
             AnnotateConfig(
-                xy=(36, 26),
-                xytext=(0.5, 0.8),
+                xy=(83, 26),
+                xytext=(0.5, 0.84),
             ),
         ]
         subplots_config = SubplotsConfig(
@@ -588,8 +591,8 @@ if __name__ == "__main__":
         )
         annotate_configs = [
             AnnotateConfig(
-                xy=(74, 52),
-                xytext=(0.5, 0.8),
+                xy=(73, 52),
+                xytext=(0.5, 0.87),
             ),
         ]
         subplots_config = SubplotsConfig(
