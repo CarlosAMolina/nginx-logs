@@ -534,7 +534,7 @@ if __name__ == "__main__":
         )
         x_axis_config = AxisConfig(
             label=figure.axis_labels.x,
-            label_values=np.arange(0, 105, 5),
+            label_values=np.arange(0, 105, 10),
             max_lim=100,
             min_lim=-0.5,
         )
