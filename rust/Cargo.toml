@@ -11,3 +11,5 @@ error-chain = "0.12.4"
 flate2 = { version = "1.0.24", features = ["zlib-ng"], default-features = false }
 serde = "1.0.137"
 serde_derive = "1.0.137"
+#lazy_static = "1.4.0"
+#regex = "1.5.6"
