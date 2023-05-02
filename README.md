@@ -110,6 +110,8 @@ To compare the resources like:
 
 Required by Python and Rust we can measure them and plot the results.
 
+A detailed explanation can be found in this [link](https://cmoli.es/projects/rust-vs-other-languages/introduction.html).
+
 ### Measure storage
 
 Create the Docker image for Python and Rust (described above) and check the size:
@@ -131,7 +133,7 @@ cd measure/measure/
 Run the following script:
 
 ```bash
-./measure-memory
+./run-and-measure-memory
 ```
 
 #### Measure CPU
