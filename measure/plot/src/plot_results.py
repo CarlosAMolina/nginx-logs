@@ -303,7 +303,7 @@ def export_cpu_rust():
     x_axis_config = AxisConfig(
         label=figure.axis_labels.x,
         label_values=np.arange(0, 0.7, 0.1),
-        max_lim=0.6,
+        max_lim=0.4,
         min_lim=-0.01,
     )
     y_axis_config = AxisConfig(
@@ -314,16 +314,16 @@ def export_cpu_rust():
     )
     annotate_configs = [
         AnnotateConfig(
-            xy=(0.54, 55),
-            xytext=(0.545, 0.95),
+            xy=(0.39, 50),
+            xytext=(0.8, 0.6),
         )
     ]
     subplots_config = SubplotsConfig(
         metrics_pathnames=get_metrics_pathname(
             [
-                "metrics-cpu-nginx_logs-20220828-182401.txt",
-                "metrics-cpu-nginx_logs-20220828-182501.txt",
-                "metrics-cpu-nginx_logs-20220828-182514.txt",
+                "metrics-cpu-rust-measure-1.txt",
+                "metrics-cpu-rust-measure-2.txt",
+                "metrics-cpu-rust-measure-3.txt",
             ]
         ),
         legends=LEGENDS,
@@ -367,9 +367,9 @@ def export_cpu_python():
     subplots_config = SubplotsConfig(
         metrics_pathnames=get_metrics_pathname(
             [
-                "metrics-cpu-python-20220828-182326.txt",
-                "metrics-cpu-python-20220828-182337.txt",
-                "metrics-cpu-python-20220828-182348.txt",
+                "metrics-cpu-python-measure-1.txt",
+                "metrics-cpu-python-measure-2.txt",
+                "metrics-cpu-python-measure-3.txt",
             ]
         ),
         legends=LEGENDS,
