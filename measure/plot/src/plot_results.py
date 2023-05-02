@@ -283,7 +283,7 @@ def export_execution_time():
     plt.xlabel(figure.axis_labels.x, fontsize=LABEL_FONTSIZE)
     plt.ylabel(figure.axis_labels.y, fontsize=LABEL_FONTSIZE)
     plt.grid(color="black", axis="y", linestyle="-", linewidth=0.1)
-    path_name = "/tmp/execution-time.png"
+    path_name = str(ResultsPath().get_image_pathname("execution-time.png"))
     print(f"Init export to {path_name}")
     plt.savefig(path_name, dpi=300)
 
@@ -668,25 +668,27 @@ def export_memory_python_add_pages_as_heap():
 
 if __name__ == "__main__":
     what_to_plot = "" if len(sys.argv) == 1 else sys.argv[1]
-    if what_to_plot == "time":
-        print("[DEBUG] Init execution time")
-        export_execution_time()
-    elif what_to_plot == "memory":
-        print("[DEBUG] Init memory")
-        export_memory_rust_heap_only()
-        export_memory_rust_add_stacks()
-        export_memory_rust_add_pages_as_heap()
-        export_memory_python_heap_only()
-        export_memory_python_add_stacks()
-        export_memory_python_add_pages_as_heap()
-    elif what_to_plot == "cpu":
-        print("[DEBUG] Init CPU")
-        export_cpu_rust()
-        export_cpu_python()
-    else:
+    valid_arguments = ["time", "memory", "cpu", "all"]
+    if len(sys.argv) == 1 or what_to_plot not in valid_arguments:
         if len(sys.argv) == 1:
             error_msg = "No arguments supplied"
         else:
             error_msg = f"Invalid argument: {what_to_plot}"
-        error_msg += ". Valid arguments: time, memory, cpu"
+        error_msg += ". Valid arguments: {}".format(", ".join(valid_arguments))
         raise ValueError(error_msg)
+    else:
+        if what_to_plot in ["time", "all"]:
+            print("[DEBUG] Init execution time")
+            export_execution_time()
+        if what_to_plot in ["memory", "all"]:
+            print("[DEBUG] Init memory")
+            export_memory_rust_heap_only()
+            export_memory_rust_add_stacks()
+            export_memory_rust_add_pages_as_heap()
+            export_memory_python_heap_only()
+            export_memory_python_add_stacks()
+            export_memory_python_add_pages_as_heap()
+        if what_to_plot in ["cpu", "all"]:
+            print("[DEBUG] Init CPU")
+            export_cpu_rust()
+            export_cpu_python()
