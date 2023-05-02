@@ -2,8 +2,9 @@ __pycache__
 /env
 /measure/measure/results/*.txt
 /measure/measure/results/massif.out.*
-/measure/plot/src/results/metrics-*.png
-/measure/plot/src/results/metrics-*.txt
+/measure/measure/results/cpu-measure
+/measure/measure/results/valgrind-measure-python-3-11
+/measure/plot/src/results/*.png
 /python/error.txt
 /python/result.csv
 /rust/error.txt
